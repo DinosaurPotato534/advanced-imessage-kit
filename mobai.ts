@@ -84,19 +84,10 @@ export class AdvancedIMessageKit extends EventEmitter {
     }
 
     async connect() {
-        this.socket.on("connect", () => {
-            this.logger.info("Connected to iMessage server");
-            this.emit("ready");
-        });
-
-        this.socket.on("disconnect", () => {
-            this.logger.info("Disconnected from iMessage server");
-            this.emit("disconnect");
-        });
-
         const serverEvents = [
             "new-message",
             "message-updated",
+            "updated-message",
             "chat-read-status-changed",
             "group-name-change",
             "participant-added",
@@ -113,6 +104,26 @@ export class AdvancedIMessageKit extends EventEmitter {
             this.socket.on(eventName, (...args: any[]) => {
                 this.emit(eventName, ...args);
             });
+        }
+
+        this.socket.on("disconnect", () => {
+            this.logger.info("Disconnected from iMessage server");
+            this.emit("disconnect");
+        });
+
+        if (this.socket.connected) {
+            this.logger.info("Already connected to iMessage server");
+            this.emit("ready");
+            return;
+        }
+
+        this.socket.once("connect", () => {
+            this.logger.info("Connected to iMessage server");
+            this.emit("ready");
+        });
+
+        if (!this.socket.connected) {
+            this.socket.connect();
         }
     }
 
