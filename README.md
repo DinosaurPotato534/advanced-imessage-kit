@@ -21,6 +21,7 @@ Advanced iMessage Kit is a comprehensive iMessage SDK for **reading**, **sending
 - **📱 Complete API** - Send text, attachments, reactions, edit messages, and more
 - **👥 Group Management** - Create groups, manage members, set group icons
 - **📎 Rich Attachments** - Send images, files, stickers, and contact cards
+ - **📎 Rich Attachments** - Send images, files, voice messages, stickers, and contact cards
 - **🔍 Advanced Querying** - Powerful message filtering and search capabilities
 - **📊 Analytics** - Message counts, delivery status, and chat statistics
 - **🎯 Event-driven** - Listen for new messages, typing indicators, and status changes
@@ -257,6 +258,31 @@ await sdk.attachments.sendSticker({
 })
 ```
 
+### Voice Messages
+
+Voice messages differ from regular audio attachments. Ensure the audio file path exists and use common formats like `.m4a` or `.mp3`. In the example script, you can also supply the path via the `AUDIO_FILE_PATH` environment variable.
+
+```typescript
+// Send voice message
+const message = await sdk.attachments.sendAttachment({
+    chatGuid: 'any;-;+1234567890',
+    filePath: '/path/to/audio.mp3',
+    isAudioMessage: true
+})
+
+// Detect and handle incoming audio messages
+sdk.on('new-message', async (msg) => {
+    if (msg.isAudioMessage) {
+        const att = msg.attachments?.[0]
+        if (att) {
+            // Download original audio attachment
+            const audioBuffer = await sdk.attachments.downloadAttachment(att.guid, { original: true })
+            // Save or process audioBuffer
+        }
+    }
+})
+```
+
 ### Attachment Info
 
 ```typescript
@@ -477,6 +503,7 @@ Check the `/examples` directory for complete working examples:
 - `demo-advanced.ts` - Advanced SDK features
 - `message-send.ts` - Send messages
 - `message-attachment.ts` - Send files and images
+- `message-audio.ts` - Send voice messages
 - `message-contact-card.ts` - Send contact cards
 - `message-edit.ts` - Edit messages
 - `message-unsend.ts` - Unsend messages
