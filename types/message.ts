@@ -28,6 +28,7 @@ export interface MessageData {
 export interface Message {
     guid: string;
     text: string;
+    service?: string;
     handle?: Handle | null;
     chats?: Chat[];
     attachments?: Attachment[];

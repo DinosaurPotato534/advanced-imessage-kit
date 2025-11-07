@@ -30,9 +30,9 @@ export class HandleModule {
         return response.data.data;
     }
 
-    async getHandleAvailability(guid: string, type: "imessage" | "facetime"): Promise<boolean> {
-        const response = await this.http.get(`/api/v1/handle/${guid}/availability/${type}`, {
-            params: { address: guid },
+    async getHandleAvailability(address: string, type: "imessage" | "facetime"): Promise<boolean> {
+        const response = await this.http.get(`/api/v1/handle/availability/${type}`, {
+            params: { address },
         });
         return response.data.data.available;
     }
