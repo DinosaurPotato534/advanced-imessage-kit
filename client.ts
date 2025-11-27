@@ -57,6 +57,12 @@ export class AdvancedIMessageKit extends EventEmitter implements TypedEventEmitt
     // This is especially problematic when the polling transport causes connection issues.
     private processedMessages = new Set<string>();
 
+    // Send queue for sequential message delivery
+    //
+    // Purpose: Ensure all outgoing messages (text, attachments, stickers, etc.) from
+    // a single user/SDK instance are sent in strict order, preventing race conditions.
+    private sendQueue: Promise<unknown> = Promise.resolve();
+
     private constructor(config: ClientConfig = {}) {
         super();
 
@@ -95,8 +101,11 @@ export class AdvancedIMessageKit extends EventEmitter implements TypedEventEmitt
             forceNew: true, // Force new connection to avoid connection state pollution
         });
 
-        this.attachments = new AttachmentModule(this.http);
-        this.messages = new MessageModule(this.http);
+        // Bind enqueueSend to this instance for use in modules
+        const enqueueSend = this.enqueueSend.bind(this);
+
+        this.attachments = new AttachmentModule(this.http, enqueueSend);
+        this.messages = new MessageModule(this.http, enqueueSend);
         this.chats = new ChatModule(this.http);
 
         this.contacts = new ContactModule(this.http);
@@ -263,6 +272,20 @@ export class AdvancedIMessageKit extends EventEmitter implements TypedEventEmitt
      */
     public getProcessedMessageCount(): number {
         return this.processedMessages.size;
+    }
+
+    /**
+     * Enqueue a send operation to ensure sequential delivery.
+     * All send operations (messages, attachments, stickers) should use this method
+     * to guarantee order for a single user.
+     * @param task The async send operation to enqueue
+     * @returns Promise that resolves with the task result
+     */
+    public enqueueSend<T>(task: () => Promise<T>): Promise<T> {
+        const result = this.sendQueue.then(() => task());
+        // Update queue, swallow errors to not block subsequent sends
+        this.sendQueue = result.catch(() => {});
+        return result;
     }
 }
 

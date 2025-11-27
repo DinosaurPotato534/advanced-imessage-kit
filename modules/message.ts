@@ -3,15 +3,20 @@ import type { AxiosInstance } from "axios";
 import type { MessageResponse, SendMessageOptions } from "../types";
 
 export class MessageModule {
-    constructor(private readonly http: AxiosInstance) {}
+    constructor(
+        private readonly http: AxiosInstance,
+        private readonly enqueueSend: <T>(task: () => Promise<T>) => Promise<T> = (task) => task(),
+    ) {}
 
     async sendMessage(options: SendMessageOptions): Promise<MessageResponse> {
-        const payload = {
-            ...options,
-            tempGuid: options.tempGuid || randomUUID(),
-        };
-        const response = await this.http.post("/api/v1/message/text", payload);
-        return response.data.data;
+        return this.enqueueSend(async () => {
+            const payload = {
+                ...options,
+                tempGuid: options.tempGuid || randomUUID(),
+            };
+            const response = await this.http.post("/api/v1/message/text", payload);
+            return response.data.data;
+        });
     }
 
     async getMessage(guid: string, options?: { with?: string[] }): Promise<MessageResponse> {
@@ -98,12 +103,14 @@ export class MessageModule {
         backwardsCompatibilityMessage?: string;
         partIndex?: number;
     }): Promise<MessageResponse> {
-        const response = await this.http.post(`/api/v1/message/${options.messageGuid}/edit`, {
-            editedMessage: options.editedMessage,
-            backwardsCompatibilityMessage: options.backwardsCompatibilityMessage || options.editedMessage,
-            partIndex: options.partIndex ?? 0,
+        return this.enqueueSend(async () => {
+            const response = await this.http.post(`/api/v1/message/${options.messageGuid}/edit`, {
+                editedMessage: options.editedMessage,
+                backwardsCompatibilityMessage: options.backwardsCompatibilityMessage || options.editedMessage,
+                partIndex: options.partIndex ?? 0,
+            });
+            return response.data.data;
         });
-        return response.data.data;
     }
 
     async sendReaction(options: {
@@ -112,20 +119,24 @@ export class MessageModule {
         reaction: string;
         partIndex?: number;
     }): Promise<MessageResponse> {
-        const response = await this.http.post("/api/v1/message/react", {
-            chatGuid: options.chatGuid,
-            selectedMessageGuid: options.messageGuid,
-            reaction: options.reaction,
-            partIndex: options.partIndex ?? 0,
+        return this.enqueueSend(async () => {
+            const response = await this.http.post("/api/v1/message/react", {
+                chatGuid: options.chatGuid,
+                selectedMessageGuid: options.messageGuid,
+                reaction: options.reaction,
+                partIndex: options.partIndex ?? 0,
+            });
+            return response.data.data;
         });
-        return response.data.data;
     }
 
     async unsendMessage(options: { messageGuid: string; partIndex?: number }): Promise<MessageResponse> {
-        const response = await this.http.post(`/api/v1/message/${options.messageGuid}/unsend`, {
-            partIndex: options.partIndex ?? 0,
+        return this.enqueueSend(async () => {
+            const response = await this.http.post(`/api/v1/message/${options.messageGuid}/unsend`, {
+                partIndex: options.partIndex ?? 0,
+            });
+            return response.data.data;
         });
-        return response.data.data;
     }
 
     async notifyMessage(guid: string): Promise<void> {
