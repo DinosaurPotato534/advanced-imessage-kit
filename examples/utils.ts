@@ -1,5 +1,5 @@
-import { type ClientConfig, SDK } from "../index";
 import type { AdvancedIMessageKit } from "../client";
+import { type ClientConfig, SDK } from "../index";
 
 export function createSDK(config: ClientConfig = {}) {
     return SDK({
