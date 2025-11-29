@@ -4,7 +4,7 @@
 
 # Advanced iMessage Kit
 
-> Powerful TypeScript iMessage SDK with real-time message processing
+> A powerful TypeScript SDK for iMessage with real-time messaging support
 
 </div>
 
@@ -12,18 +12,36 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-Join-5865F2.svg?logo=discord&logoColor=white)](https://discord.gg/RSJUUHTV)
 
-Advanced iMessage Kit is a comprehensive iMessage SDK for **reading**, **sending**, and **automating** iMessage conversations on macOS. Designed for building **AI agents**, **automation tools**, and **chat applications**.
+Advanced iMessage Kit is a full-featured iMessage SDK for **reading**, **sending**, and **automating** iMessage conversations on macOS. Perfect for building **AI agents**, **automation tools**, and **chat applications**.
+
+---
 
 ## Features
 
-- **Type Safe** — Complete TypeScript support with full type definitions
-- **Real-time Communication** — WebSocket-based event system for instant message updates
-- **Complete API** — Send text, attachments, reactions, edit messages, and more
-- **Group Management** — Create groups, manage members, and set group icons
-- **Rich Attachments** — Send images, files, voice messages, stickers, and contact cards
-- **Advanced Querying** — Powerful message filtering and search capabilities
-- **Analytics** — Track message counts, delivery status, and chat statistics
-- **Event-driven** — Listen for new messages, typing indicators, and status changes
+| Feature | Method | Example |
+|---------|--------|---------|
+| [Send Messages](#send-messages) | `messages.sendMessage()` | [message-send.ts](./examples/message-send.ts) |
+| [Reply to Messages](#send-messages) | `messages.sendMessage()` | [message-reply.ts](./examples/message-reply.ts) |
+| [Message Effects](#send-messages) | `messages.sendMessage()` | [message-effects.ts](./examples/message-effects.ts) |
+| [Unsend Messages](#unsend-messages) | `messages.unsendMessage()` | [message-unsend.ts](./examples/message-unsend.ts) |
+| [Send Tapbacks](#send-tapbacks) | `messages.sendReaction()` | [message-reaction.ts](./examples/message-reaction.ts) |
+| [Query Messages](#query-messages) | `messages.getMessages()` | [message-search.ts](./examples/message-search.ts) |
+| [Send Attachments](#send-attachments) | `attachments.sendAttachment()` | [message-attachment.ts](./examples/message-attachment.ts) |
+| [Send Audio Messages](#send-audio-messages) | `attachments.sendAttachment()` | [message-audio.ts](./examples/message-audio.ts) |
+| [Send Stickers](#send-stickers) | `attachments.sendSticker()` | [message-reply-sticker.ts](./examples/message-reply-sticker.ts) |
+| [Download Attachments](#download-attachments) | `attachments.downloadAttachment()` | [attachment-download.ts](./examples/attachment-download.ts) |
+| [Get Chats](#get-chats) | `chats.getChats()` | [chat-fetch.ts](./examples/chat-fetch.ts) |
+| [Manage Group Chats](#manage-group-chats) | `chats.addParticipant()` | [chat-group.ts](./examples/chat-group.ts) |
+| [Typing Indicators](#typing-indicators) | `chats.startTyping()` | [message-typing.ts](./examples/message-typing.ts) |
+| [Get Contacts](#get-contacts) | `contacts.getContacts()` | [contact-list.ts](./examples/contact-list.ts) |
+| [Check iMessage Availability](#check-service-availability) | `handles.getHandleAvailability()` | [service-check.ts](./examples/service-check.ts) |
+| [Server Info](#get-server-info) | `server.getServerInfo()` | [server-info.ts](./examples/server-info.ts) |
+| [Message Statistics](#message-statistics) | `server.getMessageStats()` | [message-stats.ts](./examples/message-stats.ts) |
+| [Find My Friends](#find-my-friends) *(WIP)* | `icloud.getFindMyFriends()` | [findmy-friends.ts](./examples/findmy-friends.ts) |
+| [Real-time Events](#real-time-events) | `sdk.on()` | [demo-basic.ts](./examples/demo-basic.ts) |
+| [Auto Reply](#real-time-events) | `sdk.on()` | [auto-reply-hey.ts](./examples/auto-reply-hey.ts) |
+
+---
 
 ## Quick Start
 
@@ -41,158 +59,266 @@ bun add @photon-ai/advanced-imessage-kit
 import { SDK } from "@photon-ai/advanced-imessage-kit";
 
 const sdk = SDK({
-  serverUrl: "{your-subdomain}.imsgd.photon.codes", // Your subdomain is the unique link address assigned to you
+  serverUrl: "http://localhost:1234",
 });
 
-// Connect to the server
 await sdk.connect();
 
-// Listen for new messages
 sdk.on("new-message", (message) => {
   console.log("New message:", message.text);
 });
 
-// Send a message
 await sdk.messages.sendMessage({
-  chatGuid: "any;-;+1234567890",
+  chatGuid: "iMessage;-;+1234567890",
   message: "Hello World!",
 });
 
-// Disconnect when done
 await sdk.close();
 ```
 
-## Core API
-
-### Initialization & Connection
+### Configuration
 
 ```typescript
-import { SDK } from "@photon-ai/advanced-imessage-kit";
-
-const sdk = SDK({
-  serverUrl: "{your-subdomain}.imsgd.photon.codes", // Your subdomain is the unique link address assigned to you
-  logLevel: "info", // Log level: 'debug' | 'info' | 'warn' | 'error'
-});
-
-// Connect to server
-await sdk.connect();
-
-// Check connection status
-sdk.on("ready", () => {
-  console.log("SDK is ready!");
-});
-
-// Graceful disconnect
-await sdk.close();
+interface ClientConfig {
+  serverUrl?: string;  // Server URL, defaults to "http://localhost:1234"
+  apiKey?: string;     // API key (if server requires authentication)
+  logLevel?: "debug" | "info" | "warn" | "error";  // Log level, defaults to "info"
+}
 ```
 
-### Connection Management
+---
 
-```typescript
-// Message deduplication (prevents duplicate processing)
-sdk.clearProcessedMessages(1000); // Clear old processed message records
-const count = sdk.getProcessedMessageCount(); // Get processed message count
+## Core Concepts
+
+### chatGuid Format
+
+`chatGuid` is the unique identifier for a conversation. The format is `service;-;address`:
+
+- **iMessage DM**: `iMessage;-;+1234567890` or `iMessage;-;email@example.com`
+- **SMS DM**: `SMS;-;+1234567890`
+- **Group chat**: `iMessage;+;chat123456789`
+- **Auto-detect**: `any;-;+1234567890` (SDK automatically detects the service type)
+
+### How to Get IDs
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  Phone / Email  │────▶│  Build chatGuid │────▶│  Send Message   │
+│  +1234567890    │     │ any;-;+123...   │     │  sendMessage()  │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   getChats()    │────▶│  Get chat.guid  │────▶│  Use for other  │
+│   List chats    │     │                 │     │  operations     │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  sendMessage()  │────▶│ Get message.guid│────▶│  edit/unsend    │
+│   Send message  │     │                 │     │  sendReaction   │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
 ```
 
-## Message Operations
+---
 
-### Sending Messages
+## Messages
+
+> Examples: [message-send.ts](./examples/message-send.ts) | [message-unsend.ts](./examples/message-unsend.ts) | [message-reaction.ts](./examples/message-reaction.ts) | [message-search.ts](./examples/message-search.ts)
+
+### Send Messages
 
 ```typescript
-// Send text message
+// Send a text message
 const message = await sdk.messages.sendMessage({
-  chatGuid: "any;-;+1234567890",
-  message: "Hello World!",
+  chatGuid: "iMessage;-;+1234567890",
+  message: "Hello!",
 });
 
-// Send message with options
+// With subject and effect
 await sdk.messages.sendMessage({
-  chatGuid: "any;-;+1234567890",
-  message: "Important message",
-  subject: "Subject line",
+  chatGuid: "iMessage;-;+1234567890",
+  message: "Happy Birthday!",
+  subject: "Wishes",
   effectId: "com.apple.messages.effect.CKConfettiEffect",
 });
 
-// Reply to message
+// Reply to a message
 await sdk.messages.sendMessage({
-  chatGuid: "any;-;+1234567890",
+  chatGuid: "iMessage;-;+1234567890",
   message: "This is a reply",
   selectedMessageGuid: "original-message-guid",
 });
 ```
 
-### Message Querying
+**Message Effects**:
+
+| Effect | effectId |
+|--------|----------|
+| Confetti | `com.apple.messages.effect.CKConfettiEffect` |
+| Fireworks | `com.apple.messages.effect.CKFireworksEffect` |
+| Balloons | `com.apple.messages.effect.CKBalloonEffect` |
+| Hearts | `com.apple.messages.effect.CKHeartEffect` |
+| Lasers | `com.apple.messages.effect.CKHappyBirthdayEffect` |
+| Shooting Star | `com.apple.messages.effect.CKShootingStarEffect` |
+| Sparkles | `com.apple.messages.effect.CKSparklesEffect` |
+| Echo | `com.apple.messages.effect.CKEchoEffect` |
+| Spotlight | `com.apple.messages.effect.CKSpotlightEffect` |
+| Gentle | `com.apple.MobileSMS.expressivesend.gentle` |
+| Loud | `com.apple.MobileSMS.expressivesend.loud` |
+| Slam | `com.apple.MobileSMS.expressivesend.impact` |
+| Invisible Ink | `com.apple.MobileSMS.expressivesend.invisibleink` |
+
+> Example: [message-effects.ts](./examples/message-effects.ts)
+
+### Query Messages
 
 ```typescript
-// Get messages with filters
+// Get a single message
+const message = await sdk.messages.getMessage("message-guid");
+
+// Query messages
 const messages = await sdk.messages.getMessages({
-  chatGuid: "any;-;+1234567890",
+  chatGuid: "iMessage;-;+1234567890",
   limit: 50,
   offset: 0,
+  sort: "DESC",  // DESC = newest first, ASC = oldest first
+  before: Date.now(),
+  after: Date.now() - 86400000,  // Last 24 hours
 });
 
-// Get message counts
-const totalCount = await sdk.messages.getMessageCount({
-  chatGuid: "any;-;+1234567890",
-  after: 1640995200000, // Timestamp
-  before: 1641081600000, // Timestamp
+// Search messages
+const results = await sdk.messages.searchMessages({
+  query: "keyword",
+  chatGuid: "iMessage;-;+1234567890",  // Optional
+  limit: 20,
 });
 
-const sentCount = await sdk.messages.getSentMessageCount();
+// Get counts
+const total = await sdk.messages.getMessageCount();
+const sent = await sdk.messages.getSentMessageCount();
+const updated = await sdk.messages.getUpdatedMessageCount();
 ```
 
-### Message Actions
+### Unsend Messages
 
 ```typescript
-// Edit message
-await sdk.messages.editMessage({
-  messageGuid: "message-guid",
-  editedMessage: "Updated text",
-  backwardsCompatibilityMessage: "Updated text",
-});
-
-// Add reaction
-await sdk.messages.sendReaction({
-  chatGuid: "any;-;+1234567890",
-  messageGuid: "message-guid",
-  reaction: "love", // Options: love, like, dislike, laugh, emphasize, question, -love, -like, etc.
-  partIndex: 0, // Optional: defaults to 0
-});
-
-// Unsend message
 await sdk.messages.unsendMessage({
-  messageGuid: "message-guid",
+  messageGuid: "message-guid-to-unsend",
+  partIndex: 0,  // Optional
 });
 ```
 
-## Chat Management
+> Example: [message-unsend.ts](./examples/message-unsend.ts)
 
-### Chat Operations
+### Send Tapbacks
 
 ```typescript
-// Get all chats
-const chats = await sdk.chats.getChats();
+await sdk.messages.sendReaction({
+  chatGuid: "iMessage;-;+1234567890",
+  messageGuid: "target-message-guid",
+  reaction: "love",  // love, like, dislike, laugh, emphasize, question
+  partIndex: 0,  // Optional
+});
 
-// Get specific chat
+// Remove a Tapback (prefix with -)
+await sdk.messages.sendReaction({
+  chatGuid: "iMessage;-;+1234567890",
+  messageGuid: "target-message-guid",
+  reaction: "-love",  // -love, -like, -dislike, -laugh, -emphasize, -question
+});
+```
+
+> Example: [message-reaction.ts](./examples/message-reaction.ts)
+
+### Other Message Operations
+
+```typescript
+// Trigger message notification
+await sdk.messages.notifyMessage("message-guid");
+
+// Get embedded media
+const media = await sdk.messages.getEmbeddedMedia("message-guid");
+```
+
+---
+
+## Chats
+
+> Examples: [chat-fetch.ts](./examples/chat-fetch.ts) | [chat-group.ts](./examples/chat-group.ts) | [message-typing.ts](./examples/message-typing.ts)
+
+### Get Chats
+
+```typescript
+const chats = await sdk.chats.getChats({
+  withLastMessage: true,   // Include last message
+  withArchived: false,     // Include archived chats
+  offset: 0,
+  limit: 50,
+});
+
+// Get chat count
+const count = await sdk.chats.getChatCount();
+```
+
+### Get Single Chat
+
+```typescript
 const chat = await sdk.chats.getChat("chat-guid", {
   with: ["participants", "lastMessage"],
 });
+```
 
-// Create new chat
+### Create Chat
+
+```typescript
 const newChat = await sdk.chats.createChat({
   addresses: ["+1234567890", "+0987654321"],
-  message: "Hello everyone!",
-  service: "iMessage", // 'iMessage' or 'SMS'
-  method: "private-api", // 'apple-script' or 'private-api'
+  message: "Hello everyone!",  // Optional initial message
+  service: "iMessage",  // "iMessage" or "SMS"
+  method: "private-api",  // "apple-script" or "private-api"
 });
 ```
 
-### Group Management
+### Chat Status
 
 ```typescript
-// Update group name
+// Mark as read/unread
+await sdk.chats.markChatRead("chat-guid");
+await sdk.chats.markChatUnread("chat-guid");
+
+// Delete chat
+await sdk.chats.deleteChat("chat-guid");
+```
+
+### Typing Indicators
+
+```typescript
+// Show "typing..."
+await sdk.chats.startTyping("chat-guid");
+
+// Stop showing
+await sdk.chats.stopTyping("chat-guid");
+```
+
+> Example: [message-typing.ts](./examples/message-typing.ts)
+
+### Get Chat Messages
+
+```typescript
+const messages = await sdk.chats.getChatMessages("chat-guid", {
+  limit: 100,
+  offset: 0,
+  sort: "DESC",
+  before: Date.now(),
+  after: Date.now() - 86400000,
+});
+```
+
+### Manage Group Chats
+
+```typescript
+// Rename group
 await sdk.chats.updateChat("chat-guid", {
-  displayName: "My Group Chat",
+  displayName: "New Group Name",
 });
 
 // Add participant
@@ -205,7 +331,7 @@ await sdk.chats.removeParticipant("chat-guid", "+1234567890");
 await sdk.chats.leaveChat("chat-guid");
 ```
 
-### Group Icons
+### Group Icon
 
 ```typescript
 // Set group icon
@@ -218,442 +344,372 @@ const iconBuffer = await sdk.chats.getGroupIcon("chat-guid");
 await sdk.chats.removeGroupIcon("chat-guid");
 ```
 
-### Chat Status
+> Example: [chat-group.ts](./examples/chat-group.ts)
+
+---
+
+## Attachments
+
+> Examples: [message-attachment.ts](./examples/message-attachment.ts) | [message-audio.ts](./examples/message-audio.ts) | [message-reply-sticker.ts](./examples/message-reply-sticker.ts) | [attachment-download.ts](./examples/attachment-download.ts)
+
+### Send Attachments
 
 ```typescript
-// Mark as read
-await sdk.chats.markChatRead("chat-guid");
-
-// Typing indicators
-await sdk.chats.startTyping("chat-guid");
-await sdk.chats.stopTyping("chat-guid");
-
-// Get chat messages
-const messages = await sdk.chats.getChatMessages("chat-guid", {
-  limit: 100,
-  offset: 0,
-  sort: "DESC",
-});
-```
-
-## Attachments & Media
-
-### Sending Attachments
-
-```typescript
-// Send file attachment
 const message = await sdk.attachments.sendAttachment({
-  chatGuid: "any;-;+1234567890",
+  chatGuid: "iMessage;-;+1234567890",
   filePath: "/path/to/file.jpg",
-  fileName: "custom-name.jpg", // Optional
-});
-
-// Send sticker
-await sdk.attachments.sendSticker({
-  chatGuid: "any;-;+1234567890",
-  filePath: "/path/to/sticker.png",
-  selectedMessageGuid: "message-to-reply-to", // Optional
+  fileName: "custom-name.jpg",  // Optional
 });
 ```
 
-### Voice Messages
-
-Voice messages differ from regular audio attachments. Ensure the audio file path exists and use common formats like `.m4a` or `.mp3`. In the example script, you can also supply the path via the `AUDIO_FILE_PATH` environment variable.
+### Send Audio Messages
 
 ```typescript
-// Send voice message
 const message = await sdk.attachments.sendAttachment({
-  chatGuid: "any;-;+1234567890",
-  filePath: "/path/to/audio.mp3",
+  chatGuid: "iMessage;-;+1234567890",
+  filePath: "/path/to/audio.m4a",
   isAudioMessage: true,
 });
+```
 
-// Detect and handle incoming audio messages
-sdk.on("new-message", async (msg) => {
-  if (msg.isAudioMessage) {
-    const att = msg.attachments?.[0];
-    if (att) {
-      // Download original audio attachment
-      const audioBuffer = await sdk.attachments.downloadAttachment(att.guid, {
-        original: true,
-      });
-      // Save or process audioBuffer
-    }
-  }
+> Example: [message-audio.ts](./examples/message-audio.ts)
+
+### Send Stickers
+
+```typescript
+await sdk.attachments.sendSticker({
+  chatGuid: "iMessage;-;+1234567890",
+  filePath: "/path/to/sticker.png",
+  selectedMessageGuid: "message-to-stick-on",  // Optional
 });
 ```
 
-### Attachment Info
+> Example: [message-reply-sticker.ts](./examples/message-reply-sticker.ts)
+
+### Get Attachment Info
 
 ```typescript
 // Get attachment details
 const attachment = await sdk.attachments.getAttachment("attachment-guid");
 
-// Get attachment count
+// Get total count
 const count = await sdk.attachments.getAttachmentCount();
 ```
 
-## Contacts & Handles
-
-### Contact Management
+### Download Attachments
 
 ```typescript
-// Get all contacts
-const contacts = await sdk.contacts.getContacts();
+// Download attachment
+const buffer = await sdk.attachments.downloadAttachment("attachment-guid", {
+  original: true,   // Download original file
+  force: false,     // Force re-download
+  width: 800,       // Image width (for thumbnails)
+  height: 600,      // Image height
+  quality: 80,      // Image quality
+});
 
-// Get contact card
-const contactCard = await sdk.contacts.getContactCard("+1234567890");
+// Download Live Photo video
+const liveBuffer = await sdk.attachments.downloadAttachmentLive("attachment-guid");
 
-// Share contact card
-await sdk.contacts.shareContactCard("chat-guid");
-
-// Check if should share contact
-const shouldShare = await sdk.contacts.shouldShareContact("chat-guid");
+// Get blurhash (for placeholders)
+const blurhash = await sdk.attachments.getAttachmentBlurhash("attachment-guid");
 ```
 
-### Handle Operations
+> Example: [attachment-download.ts](./examples/attachment-download.ts)
+
+---
+
+## Contacts
+
+> Example: [contact-list.ts](./examples/contact-list.ts)
+
+### Get Contacts
+
+```typescript
+const contacts = await sdk.contacts.getContacts();
+```
+
+### Get Contact Card
+
+```typescript
+// Get by phone or email
+const card = await sdk.contacts.getContactCard("+1234567890");
+```
+
+---
+
+## Handles
+
+> Examples: [service-check.ts](./examples/service-check.ts) | [handle-query.ts](./examples/handle-query.ts)
+
+A Handle represents a messaging address (phone number or email).
+
+### Query Handles
 
 ```typescript
 // Query handles
 const result = await sdk.handles.queryHandles({
-  address: "+1234567890",
-  with: ["chats"],
+  address: "+1234567890",  // Optional, filter by address
+  with: ["chats"],         // Optional, include related chats
+  offset: 0,
   limit: 50,
 });
 
-// Get handle availability
-const isAvailable = await sdk.handles.getHandleAvailability(
-  "handle-guid",
-  "imessage"
-);
+// Get single handle
+const handle = await sdk.handles.getHandle("handle-guid");
 
-// Get focus status
+// Get total count
+const count = await sdk.handles.getHandleCount();
+```
+
+### Check Service Availability
+
+Check if a phone/email supports iMessage or FaceTime:
+
+```typescript
+// First parameter is the address (phone or email), not handle guid
+const hasIMessage = await sdk.handles.getHandleAvailability("+1234567890", "imessage");
+const hasFaceTime = await sdk.handles.getHandleAvailability("+1234567890", "facetime");
+
+// Choose service based on availability
+const chatGuid = hasIMessage 
+  ? `iMessage;-;+1234567890` 
+  : `SMS;-;+1234567890`;
+```
+
+> Example: [service-check.ts](./examples/service-check.ts)
+
+### Get Focus Status
+
+```typescript
 const focusStatus = await sdk.handles.getHandleFocusStatus("handle-guid");
 ```
 
+---
+
+## Server
+
+> Examples: [message-stats.ts](./examples/message-stats.ts) | [server-info.ts](./examples/server-info.ts)
+
+### Get Server Info
+
+```typescript
+const info = await sdk.server.getServerInfo();
+// {
+//   os_version: "14.0",
+//   server_version: "1.0.0",
+//   private_api: true,
+//   helper_connected: true,
+//   detected_icloud: "user@icloud.com",
+//   ...
+// }
+```
+
+### Message Statistics
+
+```typescript
+const stats = await sdk.server.getMessageStats();
+// {
+//   total: 12345,
+//   sent: 5000,
+//   received: 7345,
+//   last24h: 50,
+//   last7d: 300,
+//   last30d: 1000,
+// }
+```
+
+### Media Statistics
+
+```typescript
+// All media stats
+const mediaStats = await sdk.server.getMediaStatistics();
+
+// Per-chat media stats
+const chatMediaStats = await sdk.server.getMediaStatisticsByChat();
+```
+
+### Server Logs
+
+```typescript
+const logs = await sdk.server.getServerLogs(100);  // Get last 100 logs
+```
+
+### Alert Management
+
+```typescript
+// Get alerts
+const alerts = await sdk.server.getAlerts();
+
+// Mark alerts as read
+await sdk.server.markAlertAsRead(["alert-id-1", "alert-id-2"]);
+```
+
+> Example: [server-info.ts](./examples/server-info.ts)
+
+---
+
+## iCloud *(Work in Progress)*
+
+> Example: [findmy-friends.ts](./examples/findmy-friends.ts)
+
+### Find My Friends
+
+```typescript
+// Get friends' locations
+const friends = await sdk.icloud.getFindMyFriends();
+
+// Refresh location data
+await sdk.icloud.refreshFindMyFriends();
+```
+
+> Example: [findmy-friends.ts](./examples/findmy-friends.ts)
+
+---
+
 ## Real-time Events
 
-The SDK emits various events for real-time updates. All events can be listened to using the `on()` method.
+> Examples: [demo-basic.ts](./examples/demo-basic.ts) | [demo-advanced.ts](./examples/demo-advanced.ts) | [auto-reply-hey.ts](./examples/auto-reply-hey.ts)
 
-### Core Events
+The SDK receives real-time events from the server via Socket.IO.
 
-#### `ready`
-
-Emitted when the SDK is fully connected and ready to use.
+### Connection Events
 
 ```typescript
 sdk.on("ready", () => {
   console.log("SDK connected and ready");
 });
-```
 
-#### `connect`
-
-Emitted when Socket.IO connection is established.
-
-```typescript
-sdk.on("connect", () => {
-  console.log("Socket.IO connected");
-});
-```
-
-#### `disconnect`
-
-Emitted when Socket.IO connection is lost.
-
-```typescript
 sdk.on("disconnect", () => {
-  console.log("Socket.IO disconnected");
+  console.log("Disconnected");
 });
-```
 
-#### `error`
-
-Emitted when an error occurs.
-
-```typescript
 sdk.on("error", (error) => {
-  console.error("SDK error:", error);
+  console.error("Error:", error);
 });
 ```
 
 ### Message Events
 
-#### `new-message`
-
-Emitted when a new message is received or sent.
-
 ```typescript
+// New message
 sdk.on("new-message", (message) => {
-  console.log("New message received:", message.text);
+  console.log("New message:", message.text);
   console.log("From:", message.handle?.address);
-  console.log("GUID:", message.guid);
+  console.log("From me:", message.isFromMe);
 });
-```
 
-#### `updated-message` / `message-updated`
-
-Emitted when a message status changes (delivered, read, etc.).
-
-```typescript
+// Message status update (delivered, read, etc.)
 sdk.on("updated-message", (message) => {
-  const status = message.dateRead
-    ? "read"
-    : message.dateDelivered
-    ? "delivered"
-    : "sent";
-  console.log(`Message ${message.guid} is now ${status}`);
+  if (message.dateRead) console.log("Message read");
+  else if (message.dateDelivered) console.log("Message delivered");
 });
-```
 
-#### `message-send-error`
-
-Emitted when sending a message fails.
-
-```typescript
+// Send failed
 sdk.on("message-send-error", (data) => {
-  console.error("Failed to send message:", data);
+  console.error("Send failed:", data);
 });
 ```
 
 ### Chat Events
 
-#### `chat-read-status-changed`
-
-Emitted when a chat is marked as read.
-
 ```typescript
+// Chat read status changed
 sdk.on("chat-read-status-changed", ({ chatGuid, read }) => {
-  console.log(`Chat ${chatGuid} marked as read`);
+  console.log(`Chat ${chatGuid} marked as ${read ? "read" : "unread"}`);
 });
 ```
 
-### Group Chat Events
-
-#### `group-name-change`
-
-Emitted when a group chat name is changed.
+### Typing Indicators
 
 ```typescript
-sdk.on("group-name-change", (data) => {
-  console.log(`Group renamed to: ${data.message.groupTitle}`);
+sdk.on("typing-indicator", ({ display, guid }) => {
+  console.log(`${guid} ${display ? "is typing" : "stopped typing"}`);
 });
 ```
 
-#### `participant-added`
-
-Emitted when someone is added to a group chat.
+### Group Events
 
 ```typescript
-sdk.on("participant-added", (data) => {
-  console.log(`Participant added to ${data.chat.displayName}`);
+sdk.on("group-name-change", (message) => {
+  console.log("Group renamed to:", message.groupTitle);
 });
-```
 
-#### `participant-removed`
-
-Emitted when someone is removed from a group chat.
-
-```typescript
-sdk.on("participant-removed", (data) => {
-  console.log(`Participant removed from ${data.chat.displayName}`);
+sdk.on("participant-added", (message) => {
+  console.log("Someone joined the group");
 });
-```
 
-#### `participant-left`
-
-Emitted when someone leaves a group chat.
-
-```typescript
-sdk.on("participant-left", (data) => {
-  console.log(`Participant left ${data.chat.displayName}`);
+sdk.on("participant-removed", (message) => {
+  console.log("Someone was removed from the group");
 });
-```
 
-#### `group-icon-changed`
+sdk.on("participant-left", (message) => {
+  console.log("Someone left the group");
+});
 
-Emitted when a group chat icon is changed.
-
-```typescript
-sdk.on("group-icon-changed", (data) => {
+sdk.on("group-icon-changed", (message) => {
   console.log("Group icon changed");
 });
-```
 
-#### `group-icon-removed`
-
-Emitted when a group chat icon is removed.
-
-```typescript
-sdk.on("group-icon-removed", (data) => {
+sdk.on("group-icon-removed", (message) => {
   console.log("Group icon removed");
 });
 ```
 
-### Private API Events
-
-#### `typing-indicator`
-
-Emitted when someone is typing. Requires Private API.
+### Find My Friends Events *(WIP)*
 
 ```typescript
-sdk.on("typing-indicator", (data) => {
-  console.log("Typing status changed:", data);
+sdk.on("new-findmy-location", (location) => {
+  console.log(`${location.handle} location updated:`, location.coordinates);
 });
 ```
 
-#### `ft-call-status-changed`
-
-Emitted when FaceTime call status changes.
+### Remove Event Listeners
 
 ```typescript
-sdk.on("ft-call-status-changed", ({ callUuid, status }) => {
-  console.log(`FaceTime call ${callUuid}: ${status}`);
-});
-```
+const handler = (message) => console.log(message);
+sdk.on("new-message", handler);
 
-### Find My Events
+// Remove specific listener
+sdk.off("new-message", handler);
 
-#### `new-findmy-location`
-
-Emitted when a Find My friend's location updates.
-
-```typescript
-sdk.on("new-findmy-location", ({ name, friendId, location }) => {
-  console.log(`${name} location: ${location.latitude}, ${location.longitude}`);
-});
-```
-
-### Scheduled Message Events
-
-#### `scheduled-message-sent`
-
-Emitted when a scheduled message is sent.
-
-```typescript
-sdk.on("scheduled-message-sent", (data) => {
-  console.log("Scheduled message sent:", data);
-});
-```
-
-#### `scheduled-message-error`
-
-Emitted when a scheduled message fails.
-
-```typescript
-sdk.on("scheduled-message-error", (data) => {
-  console.error("Scheduled message error:", data);
-});
-```
-
-#### `scheduled-message-created`
-
-Emitted when a scheduled message is created.
-
-```typescript
-sdk.on("scheduled-message-created", (data) => {
-  console.log("Scheduled message created:", data);
-});
-```
-
-#### `scheduled-message-updated`
-
-Emitted when a scheduled message is updated.
-
-```typescript
-sdk.on("scheduled-message-updated", (data) => {
-  console.log("Scheduled message updated:", data);
-});
-```
-
-#### `scheduled-message-deleted`
-
-Emitted when a scheduled message is deleted.
-
-```typescript
-sdk.on("scheduled-message-deleted", (data) => {
-  console.log("Scheduled message deleted:", data);
-});
-```
-
-### Event Management
-
-```typescript
-// Remove event listeners
-sdk.off("new-message", messageHandler);
-
-// Remove all listeners for an event
+// Remove all listeners
 sdk.removeAllListeners("new-message");
 ```
 
-## Advanced Features
+---
 
-### FaceTime Integration
+## Best Practices
+
+### Resource Management
 
 ```typescript
-// Create FaceTime link
-const link = await sdk.facetime.createFaceTimeLink();
-console.log("FaceTime link:", link);
-
-// Listen for FaceTime status changes
-sdk.on("ft-call-status-changed", (data) => {
-  console.log("FaceTime status:", data.status);
+// Graceful shutdown
+process.on("SIGINT", async () => {
+  await sdk.close();
+  process.exit(0);
 });
 ```
 
-### iCloud Services
+### Message Deduplication
+
+The SDK includes built-in message deduplication to prevent processing duplicates during network instability:
 
 ```typescript
-// Get Find My Friends
-const friends = await sdk.icloud.getFindMyFriends();
+// Clear processed messages (prevent memory leaks)
+sdk.clearProcessedMessages(1000);
 
-// Refresh data
-await sdk.icloud.refreshFindMyFriends();
+// Get processed message count
+const count = sdk.getProcessedMessageCount();
 ```
 
-### Scheduled Messages
-
-```typescript
-// Create scheduled message
-const scheduled = await sdk.scheduledMessages.createScheduledMessage({
-  chatGuid: "any;-;+1234567890",
-  message: "This message was scheduled!",
-  scheduledFor: new Date(Date.now() + 60000), // 1 minute from now
-  schedule: { type: "once" },
-});
-
-// Get all scheduled messages
-const allScheduled = await sdk.scheduledMessages.getScheduledMessages();
-
-// Update scheduled message
-await sdk.scheduledMessages.updateScheduledMessage("schedule-id", {
-  message: "Updated message",
-});
-
-// Delete scheduled message
-await sdk.scheduledMessages.deleteScheduledMessage("schedule-id");
-```
-
-### Server Information
-
-```typescript
-// Get server info
-const serverInfo = await sdk.server.getServerInfo();
-
-// Get message statistics
-const stats = await sdk.server.getMessageStats();
-
-// Get server logs
-const logs = await sdk.server.getServerLogs(100);
-```
-
-## Error Handling
+### Error Handling
 
 ```typescript
 try {
   await sdk.messages.sendMessage({
     chatGuid: "invalid-guid",
-    message: "Test",
+    message: "test",
   });
 } catch (error) {
   if (error.response?.status === 404) {
@@ -664,245 +720,90 @@ try {
 }
 ```
 
-## Configuration Options
+### Auto-create Chats
+
+When sending to a contact you've never messaged before, the SDK automatically creates the chat:
 
 ```typescript
-interface ClientConfig {
-  serverUrl?: string; // Your subdomain: '{your-subdomain}.imsgd.photon.codes'
-  apiKey?: string; // Optional API key for authenticated backends
-  logLevel?: "debug" | "info" | "warn" | "error"; // Default: 'info'
-}
-```
-
-## Best Practices
-
-### Resource Management
-
-```typescript
-// Always disconnect when done
-process.on("SIGINT", async () => {
-  await sdk.close();
-  process.exit(0);
-});
-```
-
-### Event Handling
-
-```typescript
-// Use specific event handlers
-sdk.on("new-message", handleNewMessage);
-sdk.on("error", handleError);
-
-// Remove listeners when needed
-sdk.off("new-message", handleNewMessage);
-```
-
-### Performance Optimization
-
-```typescript
-// Use pagination for large queries
-const messages = await sdk.messages.getMessages({
+// Works even without existing chat history
+await sdk.messages.sendMessage({
   chatGuid: "any;-;+1234567890",
-  limit: 100,
-  offset: 0,
+  message: "Hi, this is John",
 });
-
-// Clear processed message records (prevents memory leaks)
-sdk.clearProcessedMessages(1000);
-
-// Get processed message count
-const processedCount = sdk.getProcessedMessageCount();
+// SDK detects the chat doesn't exist, creates it, then sends
 ```
+
+---
 
 ## Examples
 
-The SDK includes comprehensive examples in the `examples/` directory. All examples can be run using Bun:
-
-### Basic Examples
-
-#### `demo-basic.ts` - Listen for Messages
-
-Simple message listener demonstrating event handling.
+Run any example with Bun:
 
 ```bash
-bun run examples/demo-basic.ts
+bun run examples/<filename>.ts
 ```
 
-#### `message-send.ts` - Send a Message
+### Getting Started
 
-Send a text message to a contact or chat.
+| File | Description |
+|------|-------------|
+| [demo-basic.ts](./examples/demo-basic.ts) | Listen for new messages |
+| [demo-advanced.ts](./examples/demo-advanced.ts) | Full feature demo |
+| [message-send.ts](./examples/message-send.ts) | Send text messages |
+| [message-attachment.ts](./examples/message-attachment.ts) | Send attachments |
+| [message-audio.ts](./examples/message-audio.ts) | Send audio messages |
 
-```bash
-CHAT_GUID="+1234567890" bun run examples/message-send.ts
-```
+### Message Operations
 
-#### `message-attachment.ts` - Send Files
+| File | Description |
+|------|-------------|
+| [message-reply.ts](./examples/message-reply.ts) | Reply to messages |
+| [message-unsend.ts](./examples/message-unsend.ts) | Unsend messages |
+| [message-reaction.ts](./examples/message-reaction.ts) | Send Tapbacks |
+| [message-effects.ts](./examples/message-effects.ts) | Message effects |
+| [message-search.ts](./examples/message-search.ts) | Search messages |
 
-Send images, videos, or other files as attachments.
+### Chats & Groups
 
-```bash
-CHAT_GUID="+1234567890" bun run examples/message-attachment.ts
-```
+| File | Description |
+|------|-------------|
+| [chat-fetch.ts](./examples/chat-fetch.ts) | Get chat list |
+| [chat-group.ts](./examples/chat-group.ts) | Manage groups |
+| [message-typing.ts](./examples/message-typing.ts) | Typing indicators |
 
-#### `message-audio.ts` - Send Voice Messages
+### Contacts & Services
 
-Send voice messages (audio attachments with special handling).
+| File | Description |
+|------|-------------|
+| [contact-list.ts](./examples/contact-list.ts) | Get contacts |
+| [service-check.ts](./examples/service-check.ts) | Check iMessage availability |
+| [message-service-check.ts](./examples/message-service-check.ts) | Monitor message service types |
 
-```bash
-CHAT_GUID="+1234567890" AUDIO_FILE_PATH="/path/to/audio.m4a" bun run examples/message-audio.ts
-```
+### Attachments & Media
 
-### Advanced Examples
+| File | Description |
+|------|-------------|
+| [attachment-download.ts](./examples/attachment-download.ts) | Download attachments |
+| [message-reply-sticker.ts](./examples/message-reply-sticker.ts) | Send stickers |
 
-#### `message-reaction.ts` - Reactions (Tapbacks)
+### Server & Advanced
 
-Add and remove reactions to messages.
+| File | Description |
+|------|-------------|
+| [server-info.ts](./examples/server-info.ts) | Server info and logs |
+| [message-stats.ts](./examples/message-stats.ts) | Message statistics |
+| [findmy-friends.ts](./examples/findmy-friends.ts) | Find My Friends *(WIP)* |
+| [auto-reply-hey.ts](./examples/auto-reply-hey.ts) | Auto reply bot |
 
-```bash
-CHAT_GUID="chat-guid" MESSAGE_GUID="message-guid" bun run examples/message-reaction.ts
-```
-
-#### `message-edit.ts` - Edit Messages
-
-Edit a sent message. Requires macOS Ventura (13.0) or newer and Private API.
-
-```bash
-CHAT_GUID="chat-guid" bun run examples/message-edit.ts
-```
-
-#### `message-unsend.ts` - Unsend Messages
-
-Unsend a message within 2 minutes of sending. Requires macOS Ventura (13.0) or newer and Private API.
-
-```bash
-CHAT_GUID="chat-guid" bun run examples/message-unsend.ts
-```
-
-#### `message-typing.ts` - Typing Indicators
-
-Start and stop typing indicators in a chat. Requires Private API.
-
-```bash
-CHAT_GUID="chat-guid" bun run examples/message-typing.ts
-```
-
-#### `message-contact-card.ts` - Share Contact Cards
-
-Share contact cards in chats. Requires macOS Big Sur (11.0) or newer and Private API.
-
-```bash
-CHAT_GUID="chat-guid" CONTACT_ADDRESS="email-or-phone" bun run examples/message-contact-card.ts
-```
-
-#### `message-reply-sticker.ts` - Send Stickers
-
-Send stickers and multipart messages. Requires Private API.
-
-```bash
-CHAT_GUID="chat-guid" STICKER_PATH="path/to/image.jpg" bun run examples/message-reply-sticker.ts
-```
-
-#### `message-effects.ts` - Message Effects
-
-Send messages with visual effects (confetti, fireworks, balloons, etc.). Requires Private API.
-
-```bash
-CHAT_GUID="chat-guid" bun run examples/message-effects.ts
-```
-
-#### `message-reply.ts` - Reply to Messages
-
-Reply to a specific message in a chat.
-
-```bash
-CHAT_GUID="chat-guid" MESSAGE_GUID="message-guid" bun run examples/message-reply.ts
-```
-
-#### `chat-fetch.ts` - Fetch Chats
-
-Retrieve and filter chats from the database.
-
-```bash
-bun run examples/chat-fetch.ts
-```
-
-#### `chat-group.ts` - Group Chat Management
-
-List and monitor group chats, track membership changes.
-
-```bash
-bun run examples/chat-group.ts
-```
-
-#### `message-search.ts` - Search Messages
-
-Search through message history with filtering options.
-
-```bash
-bun run examples/message-search.ts
-```
-
-#### `message-stats.ts` - Message Statistics
-
-View message statistics, chat activity, and analytics.
-
-```bash
-bun run examples/message-stats.ts
-```
-
-#### `message-scheduled.ts` - Schedule Messages
-
-Schedule one-time and recurring messages.
-
-```bash
-CHAT_GUID="+1234567890" bun run examples/message-scheduled.ts
-```
-
-#### `facetime-link.ts` - FaceTime Links
-
-Create FaceTime links programmatically. Requires macOS Monterey (12.0) or newer and Private API.
-
-```bash
-bun run examples/facetime-link.ts
-```
-
-#### `findmy-friends.ts` - Find My Integration
-
-Track friends via Find My network.
-
-```bash
-bun run examples/findmy-friends.ts
-```
-
-#### `contact-list.ts` - Contact Access
-
-Access and search macOS Contacts database.
-
-```bash
-bun run examples/contact-list.ts
-```
-
-#### `demo-advanced.ts` - Advanced Features
-
-Demonstrates permissions checking, chat retrieval, and event monitoring.
-
-```bash
-bun run examples/demo-advanced.ts
-```
-
-#### `auto-reply-hey.ts` - Auto-Reply Example
-
-Automatic reply example that responds to incoming messages.
-
-```bash
-bun run examples/auto-reply-hey.ts
-```
+---
 
 ## LLMs
 
-You can download the `llms.txt` helper file for language models here:
+Download `llms.txt` for language model context:
 
 - [Download llms.txt](./llms.txt)
+
+---
 
 ## License
 
