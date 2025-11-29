@@ -52,10 +52,6 @@ export class ChatModule {
         await this.http.post(`/api/v1/chat/${encodeURIComponent(guid)}/read`);
     }
 
-    async markChatUnread(guid: string): Promise<void> {
-        await this.http.post(`/api/v1/chat/${encodeURIComponent(guid)}/unread`);
-    }
-
     async leaveChat(guid: string): Promise<void> {
         await this.http.post(`/api/v1/chat/${encodeURIComponent(guid)}/leave`);
     }
