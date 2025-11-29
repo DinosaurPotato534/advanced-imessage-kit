@@ -3,7 +3,8 @@ import type { AttachmentResponse } from "../types";
 import { createSDK, handleError } from "./utils";
 
 const CHAT_GUID = process.env.CHAT_GUID || "any;-;+16504444652";
-const STICKER_PATH = process.env.STICKER_PATH || path.join(__dirname, "test-image.jpg");
+
+const STICKER_PATH = process.env.STICKER_PATH || path.join(__dirname, "test-image.png");
 
 async function main() {
     const sdk = createSDK();
@@ -27,7 +28,12 @@ async function main() {
             const stickerMessage = await sdk.attachments.sendSticker({
                 chatGuid: CHAT_GUID,
                 filePath: STICKER_PATH,
-                selectedMessageGuid: textMessage.guid, // Attach sticker to the text message
+                selectedMessageGuid: textMessage.guid,
+                stickerX: 0, // Center horizontally
+                stickerY: 0.5, // Center vertically
+                stickerScale: 0.75, // 75% scale
+                stickerRotation: 0, // No rotation
+                stickerWidth: 300, // 300 points width
             });
 
             console.log("\n✓ Sticker sent successfully!");
