@@ -646,12 +646,6 @@ const stats = await sdk.server.getMessageStats();
 
 // Get server logs
 const logs = await sdk.server.getServerLogs(100);
-
-// Get alerts
-const alerts = await sdk.server.getAlerts();
-
-// Mark alerts as read
-await sdk.server.markAlertAsRead(["alert-id-1", "alert-id-2"]);
 ```
 
 ## Error Handling

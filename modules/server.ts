@@ -20,16 +20,6 @@ export class ServerModule {
         return response.data.data;
     }
 
-    async getAlerts(): Promise<any[]> {
-        const response = await this.http.get("/api/v1/server/alert");
-        return response.data.data;
-    }
-
-    async markAlertAsRead(ids: string[]): Promise<any> {
-        const response = await this.http.post("/api/v1/server/alert/read", { ids });
-        return response.data.data;
-    }
-
     async getMediaStatistics(options?: { only?: string[] }): Promise<any> {
         const params: Record<string, any> = {};
         if (options?.only) params.only = options.only.join(",");
