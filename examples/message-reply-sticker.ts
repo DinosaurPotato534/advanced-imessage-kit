@@ -9,34 +9,28 @@ async function main() {
     const sdk = createSDK();
 
     sdk.on("ready", async () => {
-        console.log("Sticker message example...\n");
-
         try {
-            console.log("Sending a text message first...");
+            // Send a text message first
             const textMessage = await sdk.messages.sendMessage({
                 chatGuid: CHAT_GUID,
-                message: "Here comes a sticker! 👇",
+                message: "Here comes a sticker!",
             });
-
-            console.log(`✓ Text message sent! GUID: ${textMessage.guid}`);
-            console.log(`Text: "${textMessage.text}"\n`);
+            console.log(`sent: ${textMessage.guid}`);
 
             await new Promise((resolve) => setTimeout(resolve, 2000));
 
-            console.log(`Sending sticker as a reply to the previous message...`);
+            // Send sticker as a reply
             const stickerMessage = await sdk.attachments.sendSticker({
                 chatGuid: CHAT_GUID,
                 filePath: STICKER_PATH,
-                selectedMessageGuid: textMessage.guid, // Attach sticker to the text message
+                selectedMessageGuid: textMessage.guid,
             });
 
-            console.log("\n✓ Sticker sent successfully!");
-            console.log(`Sticker message GUID: ${stickerMessage.guid}`);
-            console.log(`Attachments: ${stickerMessage.attachments?.length || 0}`);
+            console.log(`sticker sent: ${stickerMessage.guid}`);
+            console.log(`attachments: ${stickerMessage.attachments?.length || 0}`);
             if (stickerMessage.attachments?.[0]) {
                 const attachment = stickerMessage.attachments[0] as AttachmentResponse;
-                console.log(`Attachment type: ${attachment.mimeType || "unknown"}`);
-                console.log(`Is sticker: ${attachment.isSticker || false}`);
+                console.log(`type: ${attachment.mimeType || "unknown"}`);
             }
         } catch (error) {
             handleError(error, "Failed to send sticker");
