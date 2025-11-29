@@ -17,9 +17,7 @@ async function main() {
                 with: ["attachment"],
             });
 
-            const messagesWithAttachments = messages.filter(
-                (m) => m.attachments && m.attachments.length > 0,
-            );
+            const messagesWithAttachments = messages.filter((m) => m.attachments && m.attachments.length > 0);
 
             if (messagesWithAttachments.length === 0) {
                 console.log("No messages with attachments found");
@@ -72,10 +70,7 @@ async function main() {
             if (attachment.hasLivePhoto) {
                 console.log("\nDownloading Live Photo video...");
                 const liveBuffer = await sdk.attachments.downloadAttachmentLive(attachment.guid);
-                const livePath = path.join(
-                    OUTPUT_DIR,
-                    `${path.parse(attachment.transferName).name}_live.mov`,
-                );
+                const livePath = path.join(OUTPUT_DIR, `${path.parse(attachment.transferName).name}_live.mov`);
                 fs.writeFileSync(livePath, liveBuffer);
                 console.log(`Live Photo saved to: ${livePath}`);
             }

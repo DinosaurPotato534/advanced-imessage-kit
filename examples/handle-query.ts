@@ -19,9 +19,7 @@ async function main() {
             console.log(`iMessage: ${hasIMessage ? "available" : "not available"}`);
             console.log(`FaceTime: ${hasFaceTime ? "available" : "not available"}`);
 
-            const recommendedGuid = hasIMessage
-                ? `iMessage;-;${ADDRESS}`
-                : `SMS;-;${ADDRESS}`;
+            const recommendedGuid = hasIMessage ? `iMessage;-;${ADDRESS}` : `SMS;-;${ADDRESS}`;
             console.log(`\nRecommended chatGuid: ${recommendedGuid}`);
         } catch (error) {
             handleError(error, "Failed to query handles");
