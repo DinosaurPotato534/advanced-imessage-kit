@@ -40,7 +40,7 @@ Advanced iMessage Kit is a full-featured iMessage SDK for **reading**, **sending
 | [Create Polls](#create-polls)                              | `polls.create()`                   | [poll-create.ts](./examples/poll-create.ts)                     |
 | [Add Poll Options](#add-poll-options)                      | `polls.addOption()`                | [poll-add-option.ts](./examples/poll-add-option.ts)             |
 | [Find My Friends](#find-my-friends) _(WIP)_                | `icloud.getFindMyFriends()`        | [findmy-friends.ts](./examples/findmy-friends.ts)               |
-| [Real-time Events](#real-time-events)                      | `sdk.on()`                         | [demo-basic.ts](./examples/demo-basic.ts)                       |
+| [Real-time Events](#real-time-events)                      | `sdk.on()`                         | [listen-simple.ts](./examples/listen-simple.ts)                 |
 | [Auto Reply](#real-time-events)                            | `sdk.on()`                         | [auto-reply-hey.ts](./examples/auto-reply-hey.ts)               |
 
 ---
@@ -587,6 +587,47 @@ await sdk.polls.addOption({
 
 > Example: [poll-add-option.ts](./examples/poll-add-option.ts)
 
+### Parse Poll Messages
+
+Use the `poll-utils` helper functions to parse and display poll messages:
+
+```typescript
+import {
+  isPollMessage,
+  isPollVote,
+  parsePollDefinition,
+  parsePollVotes,
+  getPollSummary,
+  getOptionTextById,
+} from "@photon-ai/advanced-imessage-kit/lib/poll-utils";
+
+sdk.on("new-message", (message) => {
+  if (isPollMessage(message)) {
+    if (isPollVote(message)) {
+      // Parse vote data
+      const voteData = parsePollVotes(message);
+      console.log("Votes:", voteData?.votes);
+
+      // Get option text for each vote
+      voteData?.votes.forEach((vote) => {
+        const optionText = getOptionTextById(vote.voteOptionIdentifier);
+        console.log(`${vote.participantHandle} voted for "${optionText}"`);
+      });
+    } else {
+      // Parse poll definition
+      const pollData = parsePollDefinition(message);
+      console.log("Poll title:", pollData?.title);
+      console.log("Options:", pollData?.options);
+    }
+
+    // Or get a formatted summary
+    console.log(getPollSummary(message));
+  }
+});
+```
+
+**Note**: Poll definitions are automatically cached when received. When a vote arrives, the SDK looks up the corresponding option text from the cache. If you receive a vote for a poll that was created before the SDK started, the option text won't be available and will show the UUID instead.
+
 ---
 
 ## iCloud _(Work in Progress)_
@@ -609,7 +650,7 @@ await sdk.icloud.refreshFindMyFriends();
 
 ## Real-time Events
 
-> Examples: [demo-basic.ts](./examples/demo-basic.ts) | [demo-advanced.ts](./examples/demo-advanced.ts) | [auto-reply-hey.ts](./examples/auto-reply-hey.ts)
+> Examples: [listen-simple.ts](./examples/listen-simple.ts) | [listen-advanced.ts](./examples/listen-advanced.ts) | [auto-reply-hey.ts](./examples/auto-reply-hey.ts)
 
 The SDK receives real-time events from the server via Socket.IO.
 
@@ -785,13 +826,13 @@ bun run examples/<filename>.ts
 
 ### Getting Started
 
-| File                                                      | Description             |
-| --------------------------------------------------------- | ----------------------- |
-| [demo-basic.ts](./examples/demo-basic.ts)                 | Listen for new messages |
-| [demo-advanced.ts](./examples/demo-advanced.ts)           | Full feature demo       |
-| [message-send.ts](./examples/message-send.ts)             | Send text messages      |
-| [message-attachment.ts](./examples/message-attachment.ts) | Send attachments        |
-| [message-audio.ts](./examples/message-audio.ts)           | Send audio messages     |
+| File                                                      | Description                            |
+| --------------------------------------------------------- | -------------------------------------- |
+| [listen-simple.ts](./examples/listen-simple.ts)           | Listen with formatted output           |
+| [listen-advanced.ts](./examples/listen-advanced.ts)       | Listen with full JSON and startup info |
+| [message-send.ts](./examples/message-send.ts)             | Send text messages                     |
+| [message-attachment.ts](./examples/message-attachment.ts) | Send attachments                       |
+| [message-audio.ts](./examples/message-audio.ts)           | Send audio messages                    |
 
 ### Message Operations
 

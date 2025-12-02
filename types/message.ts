@@ -97,6 +97,7 @@ export type MessageResponse = {
     partCount?: number | null;
     payloadData?: NodeJS.Dict<any>[];
     hasPayloadData?: boolean;
+    isPoll?: boolean;
     wasDeliveredQuietly?: boolean;
     didNotifyRecipient?: boolean;
     shareStatus?: number | null;

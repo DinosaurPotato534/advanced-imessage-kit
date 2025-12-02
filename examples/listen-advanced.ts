@@ -1,3 +1,4 @@
+import { getOptionTextById, isPollMessage, isPollVote, parsePollDefinition, parsePollVotes } from "../lib/poll-utils";
 import { createSDK, handleError, handleExit } from "./utils";
 
 async function main() {
@@ -28,7 +29,21 @@ async function main() {
     });
 
     sdk.on("new-message", (message) => {
-        console.log(`\n${JSON.stringify(message, null, 2)}`);
+        if (isPollMessage(message)) {
+            if (isPollVote(message)) {
+                const voteData = parsePollVotes(message);
+                const votesWithText = voteData?.votes.map((v) => ({
+                    ...v,
+                    optionText: getOptionTextById(v.voteOptionIdentifier) ?? null,
+                }));
+                console.log(`\n${JSON.stringify({ ...message, parsedVotes: votesWithText }, null, 2)}`);
+            } else {
+                const pollData = parsePollDefinition(message);
+                console.log(`\n${JSON.stringify({ ...message, parsedPoll: pollData }, null, 2)}`);
+            }
+        } else {
+            console.log(`\n${JSON.stringify(message, null, 2)}`);
+        }
     });
 
     sdk.on("typing-indicator", () => {
