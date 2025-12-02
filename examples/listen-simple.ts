@@ -1,3 +1,4 @@
+import { getPollSummary, isPollMessage } from "../lib/poll-utils";
 import { createSDK, handleExit } from "./utils";
 
 async function main() {
@@ -8,7 +9,14 @@ async function main() {
     });
 
     sdk.on("new-message", (message) => {
-        console.log(`\n${message.handle?.address ?? "unknown"}: ${message.text ?? "(no text)"}`);
+        const sender = message.handle?.address ?? "unknown";
+
+        if (isPollMessage(message)) {
+            const pollSummary = getPollSummary(message);
+            console.log(`\n${sender}: ${pollSummary}`);
+        } else {
+            console.log(`\n${sender}: ${message.text ?? "(no text)"}`);
+        }
     });
 
     sdk.on("updated-message", (message) => {
