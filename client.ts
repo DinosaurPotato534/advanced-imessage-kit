@@ -11,6 +11,7 @@ import {
     HandleModule,
     ICloudModule,
     MessageModule,
+    PollModule,
     ScheduledMessageModule,
     ServerModule,
 } from "./modules";
@@ -47,6 +48,7 @@ export class AdvancedIMessageKit extends EventEmitter implements TypedEventEmitt
     public readonly facetime: FaceTimeModule;
     public readonly icloud: ICloudModule;
 
+    public readonly polls: PollModule;
     public readonly scheduledMessages: ScheduledMessageModule;
     public readonly server: ServerModule;
 
@@ -62,6 +64,12 @@ export class AdvancedIMessageKit extends EventEmitter implements TypedEventEmitt
     // Purpose: Ensure all outgoing messages (text, attachments, stickers, etc.) from
     // a single user/SDK instance are sent in strict order, preventing race conditions.
     private sendQueue: Promise<unknown> = Promise.resolve();
+
+    // Flag to track if 'ready' event has been emitted
+    //
+    // Purpose: Prevent duplicate 'ready' events when both legacy mode (no API key)
+    // and auth-ok events occur, which would cause user callbacks to fire twice.
+    private readyEmitted = false;
 
     private constructor(config: ClientConfig = {}) {
         super();
@@ -114,6 +122,7 @@ export class AdvancedIMessageKit extends EventEmitter implements TypedEventEmitt
         this.facetime = new FaceTimeModule(this.http);
         this.icloud = new ICloudModule(this.http);
 
+        this.polls = new PollModule(this.http);
         this.scheduledMessages = new ScheduledMessageModule(this.http);
         this.server = new ServerModule(this.http);
     }
@@ -218,13 +227,17 @@ export class AdvancedIMessageKit extends EventEmitter implements TypedEventEmitt
 
         this.socket.on("disconnect", () => {
             this.logger.info("Disconnected from iMessage server");
+            this.readyEmitted = false;
             this.emit("disconnect");
         });
 
         // Listen for authentication success
         this.socket.on("auth-ok", () => {
             this.logger.info("Authentication successful");
-            this.emit("ready");
+            if (!this.readyEmitted) {
+                this.readyEmitted = true;
+                this.emit("ready");
+            }
         });
 
         // Listen for authentication errors
@@ -243,7 +256,10 @@ export class AdvancedIMessageKit extends EventEmitter implements TypedEventEmitt
             // If no apiKey, assume legacy server that doesn't require auth - emit ready immediately
             if (!this.config.apiKey) {
                 this.logger.info("No API key provided, skipping authentication (legacy server mode)");
-                this.emit("ready");
+                if (!this.readyEmitted) {
+                    this.readyEmitted = true;
+                    this.emit("ready");
+                }
             }
         });
 
