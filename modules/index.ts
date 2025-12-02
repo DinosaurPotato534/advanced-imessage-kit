@@ -5,5 +5,6 @@ export * from "./facetime";
 export * from "./handle";
 export * from "./icloud";
 export * from "./message";
+export * from "./poll";
 export * from "./scheduled";
 export * from "./server";
