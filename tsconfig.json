@@ -26,5 +26,6 @@
         "noUnusedLocals": false,
         "noUnusedParameters": false,
         "noPropertyAccessFromIndexSignature": false
-    }
+    },
+    "exclude": ["tsup.config.ts", "dist", "node_modules"]
 }
