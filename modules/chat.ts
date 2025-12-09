@@ -33,38 +33,42 @@ export class ChatModule {
     }
 
     async getChat(guid: string, options?: { with?: string[] }): Promise<ChatResponse> {
-        const response = await this.http.get(`/api/v1/chat/${encodeURIComponent(guid)}`, {
+        const response = await this.http.get(`/api/v1/chat/${guid}`, {
             params: options?.with ? { with: options.with.join(",") } : {},
         });
         return response.data.data;
     }
 
     async updateChat(guid: string, options: { displayName?: string }): Promise<ChatResponse> {
-        const response = await this.http.put(`/api/v1/chat/${encodeURIComponent(guid)}`, options);
+        const response = await this.http.put(`/api/v1/chat/${guid}`, options);
         return response.data.data;
     }
 
     async deleteChat(guid: string): Promise<void> {
-        await this.http.delete(`/api/v1/chat/${encodeURIComponent(guid)}`);
+        await this.http.delete(`/api/v1/chat/${guid}`);
     }
 
     async markChatRead(guid: string): Promise<void> {
-        await this.http.post(`/api/v1/chat/${encodeURIComponent(guid)}/read`);
+        await this.http.post(`/api/v1/chat/${guid}/read`);
+    }
+
+    async markChatUnread(guid: string): Promise<void> {
+        await this.http.post(`/api/v1/chat/${guid}/unread`);
     }
 
     async leaveChat(guid: string): Promise<void> {
-        await this.http.post(`/api/v1/chat/${encodeURIComponent(guid)}/leave`);
+        await this.http.post(`/api/v1/chat/${guid}/leave`);
     }
 
     async addParticipant(chatGuid: string, address: string): Promise<ChatResponse> {
-        const response = await this.http.post(`/api/v1/chat/${encodeURIComponent(chatGuid)}/participant`, {
+        const response = await this.http.post(`/api/v1/chat/${chatGuid}/participant`, {
             address,
         });
         return response.data.data;
     }
 
     async removeParticipant(chatGuid: string, address: string): Promise<ChatResponse> {
-        const response = await this.http.delete(`/api/v1/chat/${encodeURIComponent(chatGuid)}/participant`, {
+        const response = await this.http.delete(`/api/v1/chat/${chatGuid}/participant`, {
             data: { address },
         });
         return response.data.data;
@@ -89,7 +93,7 @@ export class ChatModule {
         if (options?.after !== undefined) params.after = options.after;
         if (options?.with) params.with = options.with.join(",");
 
-        const response = await this.http.get(`/api/v1/chat/${encodeURIComponent(chatGuid)}/message`, {
+        const response = await this.http.get(`/api/v1/chat/${chatGuid}/message`, {
             params,
         });
         return response.data.data;
@@ -101,17 +105,17 @@ export class ChatModule {
         const form = new FormData();
         form.append("icon", fileBuffer, fileName);
 
-        await this.http.post(`/api/v1/chat/${encodeURIComponent(chatGuid)}/icon`, form, {
+        await this.http.post(`/api/v1/chat/${chatGuid}/icon`, form, {
             headers: form.getHeaders(),
         });
     }
 
     async removeGroupIcon(chatGuid: string): Promise<void> {
-        await this.http.delete(`/api/v1/chat/${encodeURIComponent(chatGuid)}/icon`);
+        await this.http.delete(`/api/v1/chat/${chatGuid}/icon`);
     }
 
     async getGroupIcon(chatGuid: string): Promise<Buffer> {
-        const response = await this.http.get(`/api/v1/chat/${encodeURIComponent(chatGuid)}/icon`, {
+        const response = await this.http.get(`/api/v1/chat/${chatGuid}/icon`, {
             responseType: "arraybuffer",
         });
         return Buffer.from(response.data);
@@ -128,10 +132,32 @@ export class ChatModule {
     }
 
     async startTyping(chatGuid: string): Promise<void> {
-        await this.http.post(`/api/v1/chat/${encodeURIComponent(chatGuid)}/typing`);
+        await this.http.post(`/api/v1/chat/${chatGuid}/typing`);
     }
 
     async stopTyping(chatGuid: string): Promise<void> {
-        await this.http.delete(`/api/v1/chat/${encodeURIComponent(chatGuid)}/typing`);
+        await this.http.delete(`/api/v1/chat/${chatGuid}/typing`);
+    }
+
+    async getBackground(chatGuid: string): Promise<{
+        hasBackground: boolean;
+        backgroundChannelGUID?: string | null;
+        imageUrl?: string | null;
+        backgroundId?: string | null;
+    }> {
+        const response = await this.http.get(`/api/v1/chat/${encodeURIComponent(chatGuid)}/background`);
+        return response.data.data;
+    }
+
+    async setBackground(
+        chatGuid: string,
+        options: string | { imageUrl?: string; filePath?: string; fileData?: string },
+    ): Promise<void> {
+        const body = typeof options === "string" ? { imageUrl: options } : options;
+        await this.http.post(`/api/v1/chat/${encodeURIComponent(chatGuid)}/background`, body);
+    }
+
+    async removeBackground(chatGuid: string): Promise<void> {
+        await this.http.delete(`/api/v1/chat/${encodeURIComponent(chatGuid)}/background`);
     }
 }
