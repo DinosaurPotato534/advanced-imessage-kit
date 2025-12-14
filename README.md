@@ -18,34 +18,34 @@ Advanced iMessage Kit is a full-featured iMessage SDK for **reading**, **sending
 
 ## Features
 
-| Feature | Description | Method | Example |
-| ------- | ----------- | ------ | ------- |
-| [Send Messages](#send-messages) | Send text messages to any contact | `messages.sendMessage()` | [message-send.ts](./examples/message-send.ts) |
-| [Reply to Messages](#send-messages) | Reply inline to a specific message | `messages.sendMessage()` | [message-reply.ts](./examples/message-reply.ts) |
-| [Message Effects](#send-messages) | Send with effects (confetti, fireworks, etc.) | `messages.sendMessage()` | [message-effects.ts](./examples/message-effects.ts) |
-| [Unsend Messages](#unsend-messages) | Retract a sent message | `messages.unsendMessage()` | [message-unsend.ts](./examples/message-unsend.ts) |
-| [Send Tapbacks](#send-tapbacks) | React with ❤️ 👍 👎 😂 ‼️ ❓ | `messages.sendReaction()` | [message-reaction.ts](./examples/message-reaction.ts) |
-| [Query Messages](#query-messages) | Search and filter message history | `messages.getMessages()` | [message-search.ts](./examples/message-search.ts) |
-| [Message History](#get-chat-messages) | View messages, reactions, polls, stickers | `chats.getChatMessages()` | [message-history.ts](./examples/message-history.ts) |
-| [Send Attachments](#send-attachments) | Send images, files, documents | `attachments.sendAttachment()` | [message-attachment.ts](./examples/message-attachment.ts) |
-| [Send Audio Messages](#send-audio-messages) | Send voice messages | `attachments.sendAttachment()` | [message-audio.ts](./examples/message-audio.ts) |
-| [Send Stickers](#send-stickers) | Send sticker as standalone message | `attachments.sendSticker()` | [message-sticker.ts](./examples/message-sticker.ts) |
-| [Reply Stickers](#send-stickers) | Attach sticker to a message bubble | `attachments.sendSticker()` | [message-reply-sticker.ts](./examples/message-reply-sticker.ts) |
-| [Download Attachments](#download-attachments) | Download received files and media | `attachments.downloadAttachment()` | [attachment-download.ts](./examples/attachment-download.ts) |
-| [Get Chats](#get-chats) | List all conversations | `chats.getChats()` | [chat-fetch.ts](./examples/chat-fetch.ts) |
-| [Manage Group Chats](#manage-group-chats) | Add/remove members, rename groups | `chats.addParticipant()` | [chat-group.ts](./examples/chat-group.ts) |
-| [Typing Indicators](#typing-indicators) | Show "typing..." status | `chats.startTyping()` | [message-typing.ts](./examples/message-typing.ts) |
-| [Get Contacts](#get-contacts) | Fetch device contacts | `contacts.getContacts()` | [contact-list.ts](./examples/contact-list.ts) |
-| [Share Contact Card](#share-contact-card) | Share your contact info in chat | `contacts.shareContactCard()` | [message-contact-card.ts](./examples/message-contact-card.ts) |
-| [Check iMessage Availability](#check-service-availability) | Verify if contact uses iMessage | `handles.getHandleAvailability()` | [service-check.ts](./examples/service-check.ts) |
-| [Server Info](#get-server-info) | Get server status and config | `server.getServerInfo()` | [server-info.ts](./examples/server-info.ts) |
-| [Message Statistics](#message-statistics) | Get message counts and analytics | `server.getMessageStats()` | [message-stats.ts](./examples/message-stats.ts) |
-| [Create Polls](#create-polls) | Create interactive polls in chat | `polls.create()` | [poll-create.ts](./examples/poll-create.ts) |
-| [Vote on Polls](#vote-on-polls) | Vote or unvote on poll options | `polls.vote()` | [poll-create.ts](./examples/poll-create.ts) |
-| [Add Poll Options](#add-poll-options) | Add options to existing polls | `polls.addOption()` | [poll-add-option.ts](./examples/poll-add-option.ts) |
-| [Find My Friends](#find-my-friends) _(WIP)_ | Get friends' locations | `icloud.getFindMyFriends()` | [findmy-friends.ts](./examples/findmy-friends.ts) |
-| [Real-time Events](#real-time-events) | Listen for new messages, typing, etc. | `sdk.on()` | [listen-simple.ts](./examples/listen-simple.ts) |
-| [Auto Reply](#real-time-events) | Build automated reply bots | `sdk.on()` | [auto-reply-hey.ts](./examples/auto-reply-hey.ts) |
+| Feature                                                    | Description                                   | Method                             | Example                                                         |
+| ---------------------------------------------------------- | --------------------------------------------- | ---------------------------------- | --------------------------------------------------------------- |
+| [Send Messages](#send-messages)                            | Send text messages to any contact             | `messages.sendMessage()`           | [message-send.ts](./examples/message-send.ts)                   |
+| [Reply to Messages](#send-messages)                        | Reply inline to a specific message            | `messages.sendMessage()`           | [message-reply.ts](./examples/message-reply.ts)                 |
+| [Message Effects](#send-messages)                          | Send with effects (confetti, fireworks, etc.) | `messages.sendMessage()`           | [message-effects.ts](./examples/message-effects.ts)             |
+| [Unsend Messages](#unsend-messages)                        | Retract a sent message                        | `messages.unsendMessage()`         | [message-unsend.ts](./examples/message-unsend.ts)               |
+| [Send Tapbacks](#send-tapbacks)                            | React with ❤️ 👍 👎 😂 ‼️ ❓                  | `messages.sendReaction()`          | [message-reaction.ts](./examples/message-reaction.ts)           |
+| [Query Messages](#query-messages)                          | Search and filter message history             | `messages.getMessages()`           | [message-search.ts](./examples/message-search.ts)               |
+| [Message History](#get-chat-messages)                      | View messages, reactions, polls, stickers     | `chats.getChatMessages()`          | [message-history.ts](./examples/message-history.ts)             |
+| [Send Attachments](#send-attachments)                      | Send images, files, documents                 | `attachments.sendAttachment()`     | [message-attachment.ts](./examples/message-attachment.ts)       |
+| [Send Audio Messages](#send-audio-messages)                | Send voice messages                           | `attachments.sendAttachment()`     | [message-audio.ts](./examples/message-audio.ts)                 |
+| [Send Stickers](#send-stickers)                            | Send sticker as standalone message            | `attachments.sendSticker()`        | [message-sticker.ts](./examples/message-sticker.ts)             |
+| [Reply Stickers](#send-stickers)                           | Attach sticker to a message bubble            | `attachments.sendSticker()`        | [message-reply-sticker.ts](./examples/message-reply-sticker.ts) |
+| [Download Attachments](#download-attachments)              | Download received files and media             | `attachments.downloadAttachment()` | [attachment-download.ts](./examples/attachment-download.ts)     |
+| [Get Chats](#get-chats)                                    | List all conversations                        | `chats.getChats()`                 | [chat-fetch.ts](./examples/chat-fetch.ts)                       |
+| [Manage Group Chats](#manage-group-chats)                  | Add/remove members, rename groups             | `chats.addParticipant()`           | [chat-group.ts](./examples/chat-group.ts)                       |
+| [Typing Indicators](#typing-indicators)                    | Show "typing..." status                       | `chats.startTyping()`              | [message-typing.ts](./examples/message-typing.ts)               |
+| [Get Contacts](#get-contacts)                              | Fetch device contacts                         | `contacts.getContacts()`           | [contact-list.ts](./examples/contact-list.ts)                   |
+| [Share Contact Card](#share-contact-card)                  | Share your contact info in chat               | `contacts.shareContactCard()`      | [message-contact-card.ts](./examples/message-contact-card.ts)   |
+| [Check iMessage Availability](#check-service-availability) | Verify if contact uses iMessage               | `handles.getHandleAvailability()`  | [service-check.ts](./examples/service-check.ts)                 |
+| [Server Info](#get-server-info)                            | Get server status and config                  | `server.getServerInfo()`           | [server-info.ts](./examples/server-info.ts)                     |
+| [Message Statistics](#message-statistics)                  | Get message counts and analytics              | `server.getMessageStats()`         | [message-stats.ts](./examples/message-stats.ts)                 |
+| [Create Polls](#create-polls)                              | Create interactive polls in chat              | `polls.create()`                   | [poll-create.ts](./examples/poll-create.ts)                     |
+| [Vote on Polls](#vote-on-polls)                            | Vote or unvote on poll options                | `polls.vote()`                     | [poll-create.ts](./examples/poll-create.ts)                     |
+| [Add Poll Options](#add-poll-options)                      | Add options to existing polls                 | `polls.addOption()`                | [poll-add-option.ts](./examples/poll-add-option.ts)             |
+| [Find My Friends](#find-my-friends) _(WIP)_                | Get friends' locations                        | `icloud.getFindMyFriends()`        | [findmy-friends.ts](./examples/findmy-friends.ts)               |
+| [Real-time Events](#real-time-events)                      | Listen for new messages, typing, etc.         | `sdk.on()`                         | [listen-simple.ts](./examples/listen-simple.ts)                 |
+| [Auto Reply](#real-time-events)                            | Build automated reply bots                    | `sdk.on()`                         | [auto-reply-hey.ts](./examples/auto-reply-hey.ts)               |
 
 ---
 
@@ -476,12 +476,18 @@ const card = await sdk.contacts.getContactCard("+1234567890");
 Share your contact card with a chat:
 
 ```typescript
-// Check if sharing is recommended
+// chatGuid is the chat identifier (e.g. the `guid` field you get from chat APIs/events)
+// Check whether the SDK recommends sharing your contact card in this chat.
+//
+// Returns:
+// - true: sharing is recommended (typically when the other side shared theirs and you haven't shared yours yet)
+// - false: NOT recommended (e.g. you've already shared, OR the other side hasn't shared theirs yet)
 const shouldShare = await sdk.contacts.shouldShareContact("chat-guid");
-// Returns false if you've already shared or they haven't shared theirs
 
-// Share your contact card
-await sdk.contacts.shareContactCard("chat-guid");
+if (shouldShare) {
+  // Share your contact card (iMessage "Share Name and Photo")
+  await sdk.contacts.shareContactCard("chat-guid");
+}
 ```
 
 > Example: [message-contact-card.ts](./examples/message-contact-card.ts)
@@ -888,22 +894,22 @@ bun run examples/<filename>.ts
 
 ### Message Operations
 
-| File                                                  | Description        |
-| ----------------------------------------------------- | ------------------ |
-| [message-reply.ts](./examples/message-reply.ts)       | Reply to messages  |
-| [message-unsend.ts](./examples/message-unsend.ts)     | Unsend messages    |
-| [message-reaction.ts](./examples/message-reaction.ts) | Send Tapbacks      |
-| [message-effects.ts](./examples/message-effects.ts)   | Message effects    |
-| [message-search.ts](./examples/message-search.ts)     | Search messages    |
-| [message-history.ts](./examples/message-history.ts)   | Message history    |
+| File                                                  | Description       |
+| ----------------------------------------------------- | ----------------- |
+| [message-reply.ts](./examples/message-reply.ts)       | Reply to messages |
+| [message-unsend.ts](./examples/message-unsend.ts)     | Unsend messages   |
+| [message-reaction.ts](./examples/message-reaction.ts) | Send Tapbacks     |
+| [message-effects.ts](./examples/message-effects.ts)   | Message effects   |
+| [message-search.ts](./examples/message-search.ts)     | Search messages   |
+| [message-history.ts](./examples/message-history.ts)   | Message history   |
 
 ### Chats & Groups
 
-| File                                                  | Description         |
-| ----------------------------------------------------- | ------------------- |
-| [chat-fetch.ts](./examples/chat-fetch.ts)             | Get chat list       |
-| [chat-group.ts](./examples/chat-group.ts)             | Manage groups       |
-| [message-typing.ts](./examples/message-typing.ts)     | Typing indicators   |
+| File                                              | Description       |
+| ------------------------------------------------- | ----------------- |
+| [chat-fetch.ts](./examples/chat-fetch.ts)         | Get chat list     |
+| [chat-group.ts](./examples/chat-group.ts)         | Manage groups     |
+| [message-typing.ts](./examples/message-typing.ts) | Typing indicators |
 
 ### Contacts & Services
 
@@ -916,11 +922,11 @@ bun run examples/<filename>.ts
 
 ### Attachments & Media
 
-| File                                                            | Description               |
-| --------------------------------------------------------------- | ------------------------- |
-| [attachment-download.ts](./examples/attachment-download.ts)     | Download attachments      |
-| [message-sticker.ts](./examples/message-sticker.ts)             | Send standalone stickers  |
-| [message-reply-sticker.ts](./examples/message-reply-sticker.ts) | Send reply stickers       |
+| File                                                            | Description              |
+| --------------------------------------------------------------- | ------------------------ |
+| [attachment-download.ts](./examples/attachment-download.ts)     | Download attachments     |
+| [message-sticker.ts](./examples/message-sticker.ts)             | Send standalone stickers |
+| [message-reply-sticker.ts](./examples/message-reply-sticker.ts) | Send reply stickers      |
 
 ### Polls
 
