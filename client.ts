@@ -23,12 +23,6 @@ export class AdvancedIMessageKit extends EventEmitter implements TypedEventEmitt
         (globalThis as any).__AdvancedIMessageKit__ = sdk;
     };
 
-    /** Create a new independent SDK instance (for multi-server scenarios) */
-    public static createInstance(config: ClientConfig): AdvancedIMessageKit {
-        return new AdvancedIMessageKit(config);
-    }
-
-    /** Get or create the global singleton instance (for single-server scenarios) */
     public static getInstance(config?: ClientConfig): AdvancedIMessageKit {
         const existing = AdvancedIMessageKit.getGlobalSdk();
         if (existing) return existing;
@@ -77,7 +71,7 @@ export class AdvancedIMessageKit extends EventEmitter implements TypedEventEmitt
     // and auth-ok events occur, which would cause user callbacks to fire twice.
     private readyEmitted = false;
 
-    private constructor(config: ClientConfig = {}) {
+    constructor(config: ClientConfig = {}) {
         super();
 
         this.config = {

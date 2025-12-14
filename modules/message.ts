@@ -180,6 +180,15 @@ export class MessageModule {
         // Use MessageRouter.query (POST /api/v1/message/query) and a message.text LIKE condition to perform server-side text search
         const { query, chatGuid, offset, limit, sort, before, after } = options;
 
+        // Validate: empty query would match all messages
+        if (!query || query.trim().length === 0) {
+            throw new Error("Search query cannot be empty");
+        }
+
+        // Note: We don't escape % and _ here because:
+        // 1. Server may use Spotlight API (doesn't understand ESCAPE syntax)
+        // 2. Parameterized queries already prevent SQL injection
+        // 3. Wildcard behavior (% = any chars, _ = single char) can be useful
         const where = [
             {
                 statement: "message.text LIKE :text",
