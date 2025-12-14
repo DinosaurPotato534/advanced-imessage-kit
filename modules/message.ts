@@ -186,9 +186,12 @@ export class MessageModule {
         }
 
         // Note: We don't escape % and _ here because:
-        // 1. Server may use Spotlight API (doesn't understand ESCAPE syntax)
-        // 2. Parameterized queries already prevent SQL injection
-        // 3. Wildcard behavior (% = any chars, _ = single char) can be useful
+        // 1. Server uses Spotlight API (on macOS 13+) which is token-based, not substring-based.
+        //    - Matches "Hello" -> "Hello world" (Word match)
+        //    - No match "Hell" -> "Hello" (Partial word mismatch)
+        //    - Matches "测试" -> "这是一个测试" (Chinese token match)
+        // 2. Spotlight doesn't understand SQL ESCAPE syntax.
+        // 3. Parameterized queries already prevent SQL injection.
         const where = [
             {
                 statement: "message.text LIKE :text",
