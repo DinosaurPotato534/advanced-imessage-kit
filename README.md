@@ -617,7 +617,7 @@ const logs = await sdk.server.getServerLogs(100); // Get last 100 logs
 
 ## Polls
 
-> Examples: [poll-create.ts](./examples/poll-create.ts) | [poll-vote.ts](./examples/poll-vote.ts) | [poll-add-option.ts](./examples/poll-add-option.ts)
+> Examples: [poll-create.ts](./examples/poll-create.ts) | [poll-vote.ts](./examples/poll-vote.ts) | [poll-unvote.ts](./examples/poll-unvote.ts) | [poll-add-option.ts](./examples/poll-add-option.ts)
 
 ### Create Polls
 
@@ -663,7 +663,7 @@ await sdk.polls.unvote({
 });
 ```
 
-> Example: [poll-vote.ts](./examples/poll-vote.ts)
+> Examples: [poll-vote.ts](./examples/poll-vote.ts) | [poll-unvote.ts](./examples/poll-unvote.ts)
 
 ### Parse Poll Messages
 
@@ -955,6 +955,7 @@ bun run examples/<filename>.ts
 | --------------------------------------------------- | ---------------- |
 | [poll-create.ts](./examples/poll-create.ts)         | Create polls     |
 | [poll-vote.ts](./examples/poll-vote.ts)             | Vote on polls    |
+| [poll-unvote.ts](./examples/poll-unvote.ts)         | Unvote on polls  |
 | [poll-add-option.ts](./examples/poll-add-option.ts) | Add poll options |
 
 ### Server & Advanced
