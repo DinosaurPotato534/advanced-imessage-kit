@@ -34,6 +34,7 @@ Advanced iMessage Kit is a full-featured iMessage SDK for **reading**, **sending
 | [Reply Stickers](#send-stickers)                           | Attach sticker to a message bubble            | `attachments.sendSticker()`        | [message-reply-sticker.ts](./examples/message-reply-sticker.ts) |
 | [Download Attachments](#download-attachments)              | Download received files and media             | `attachments.downloadAttachment()` | [attachment-download.ts](./examples/attachment-download.ts)     |
 | [Get Chats](#get-chats)                                    | List all conversations                        | `chats.getChats()`                 | [chat-fetch.ts](./examples/chat-fetch.ts)                       |
+| [Get Chat Participants](#get-chat-participants)            | View group chat participants                  | `chats.getChat()`                  | [chat-participants.ts](./examples/chat-participants.ts)         |
 | [Manage Group Chats](#manage-group-chats)                  | Add/remove members, rename groups             | `chats.addParticipant()`           | [chat-group.ts](./examples/chat-group.ts)                       |
 | [Typing Indicators](#typing-indicators)                    | Show "typing..." status                       | `chats.startTyping()`              | [message-typing.ts](./examples/message-typing.ts)               |
 | [Get Contacts](#get-contacts)                              | Fetch device contacts                         | `contacts.getContacts()`           | [contact-list.ts](./examples/contact-list.ts)                   |
@@ -290,6 +291,37 @@ const chat = await sdk.chats.getChat("chat-guid", {
   with: ["participants", "lastMessage"],
 });
 ```
+
+### Get Chat Participants
+
+Get participants from group chats and display them with contact names:
+
+```typescript
+const chats = await sdk.chats.getChats();
+const groups = chats.filter((chat) => chat.style === 43); // Filter group chats
+
+// Get contacts for name mapping
+const contacts = await sdk.contacts.getContacts();
+const nameMap = new Map<string, string>();
+for (const c of contacts) {
+  const name = c.displayName || c.firstName || "";
+  if (!name) continue;
+  for (const p of c.phoneNumbers || []) nameMap.set(p.address, name);
+  for (const e of c.emails || []) nameMap.set(e.address, name);
+}
+
+// Display participants
+groups.forEach((group) => {
+  console.log(`Group: ${group.displayName || group.chatIdentifier}`);
+  group.participants?.forEach((p) => {
+    const name = nameMap.get(p.address);
+    const display = name ? `${name} <${p.address}>` : p.address;
+    console.log(`  - ${display} (${p.service})`);
+  });
+});
+```
+
+> Example: [chat-participants.ts](./examples/chat-participants.ts)
 
 ### Create Chat
 
@@ -926,11 +958,12 @@ bun run examples/<filename>.ts
 
 ### Chats & Groups
 
-| File                                              | Description       |
-| ------------------------------------------------- | ----------------- |
-| [chat-fetch.ts](./examples/chat-fetch.ts)         | Get chat list     |
-| [chat-group.ts](./examples/chat-group.ts)         | Manage groups     |
-| [message-typing.ts](./examples/message-typing.ts) | Typing indicators |
+| File                                                    | Description            |
+| ------------------------------------------------------- | ---------------------- |
+| [chat-fetch.ts](./examples/chat-fetch.ts)               | Get chat list          |
+| [chat-participants.ts](./examples/chat-participants.ts) | Get group participants |
+| [chat-group.ts](./examples/chat-group.ts)               | Manage groups          |
+| [message-typing.ts](./examples/message-typing.ts)       | Typing indicators      |
 
 ### Contacts & Services
 
