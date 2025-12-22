@@ -7,7 +7,7 @@ export class MessageModule {
     constructor(
         private readonly http: AxiosInstance,
         private readonly enqueueSend: <T>(task: () => Promise<T>) => Promise<T> = (task) => task(),
-    ) { }
+    ) {}
 
     async sendMessage(options: SendMessageOptions): Promise<MessageResponse> {
         return this.enqueueSend(async () => {

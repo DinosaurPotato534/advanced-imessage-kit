@@ -64,7 +64,8 @@ export async function createChatWithMessage(options: {
         return response.data.data?.guid;
     } catch (error) {
         throw new Error(
-            `Failed to create chat with address "${address}": ${error instanceof Error ? error.message : String(error)
+            `Failed to create chat with address "${address}": ${
+                error instanceof Error ? error.message : String(error)
             }`,
         );
     }

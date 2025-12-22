@@ -10,7 +10,7 @@ export class AttachmentModule {
     constructor(
         private readonly http: AxiosInstance,
         private readonly enqueueSend: <T>(task: () => Promise<T>) => Promise<T> = (task) => task(),
-    ) { }
+    ) {}
 
     async getAttachmentCount(): Promise<number> {
         const response = await this.http.get("/api/v1/attachment/count");
