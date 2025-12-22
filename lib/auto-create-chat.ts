@@ -30,8 +30,12 @@ export function extractAddress(chatGuid: string): string | undefined {
  * e.g., "iMessage;-;+1234567890" -> "iMessage"
  *       "SMS;-;+1234567890" -> "SMS"
  *       "any;-;+1234567890" -> undefined (let server decide)
+ *
+ * Any prefix other than "iMessage" or "SMS" (case-insensitive) will return undefined,
+ * allowing the server to decide the service type.
  */
 export function extractService(chatGuid: string): "iMessage" | "SMS" | undefined {
+    if (!chatGuid) return undefined;
     const prefix = chatGuid.split(";")[0]?.toLowerCase();
     if (prefix === "imessage") return "iMessage";
     if (prefix === "sms") return "SMS";

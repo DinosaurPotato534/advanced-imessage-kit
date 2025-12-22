@@ -69,7 +69,7 @@ export class AttachmentModule {
     }
 
     /**
-     * Helper to create chat if it doesn't exist, then retry the operation
+     * Ensures the chat exists by creating it if it doesn't already exist.
      */
     private async ensureChatExists(chatGuid: string): Promise<void> {
         const address = extractAddress(chatGuid);
