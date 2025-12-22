@@ -68,8 +68,8 @@ export class ChatModule {
     }
 
     async removeParticipant(chatGuid: string, address: string): Promise<ChatResponse> {
-        const response = await this.http.delete(`/api/v1/chat/${encodeURIComponent(chatGuid)}/participant`, {
-            data: { address },
+        const response = await this.http.post(`/api/v1/chat/${encodeURIComponent(chatGuid)}/participant/remove`, {
+            address,
         });
         return response.data.data;
     }
