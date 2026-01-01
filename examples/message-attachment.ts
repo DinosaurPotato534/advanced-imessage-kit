@@ -3,7 +3,7 @@ import path from "node:path";
 import { createSDK, handleError } from "./utils";
 
 const CHAT_GUID = process.env.CHAT_GUID || "any;-;+1234567890";
-const ATTACHMENT_PATH = process.env.ATTACHMENT_PATH || path.join(__dirname, "test-image.jpg");
+const ATTACHMENT_PATH = process.env.ATTACHMENT_PATH || path.join(__dirname, "test-image.png");
 
 async function main() {
     const sdk = createSDK();
