@@ -71,6 +71,13 @@ export class AdvancedIMessageKit extends EventEmitter implements TypedEventEmitt
     // and auth-ok events occur, which would cause user callbacks to fire twice.
     private readyEmitted = false;
 
+    // Flag to track if socket event listeners have been attached
+    //
+    // Purpose: Prevent duplicate event listeners when connect() is called multiple times
+    // or after close(). Without this, each connect() call would add new listeners,
+    // causing events to fire multiple times.
+    private listenersAttached = false;
+
     constructor(config: ClientConfig = {}) {
         super();
 
@@ -107,6 +114,11 @@ export class AdvancedIMessageKit extends EventEmitter implements TypedEventEmitt
             transports: ["websocket"], // Only WebSocket - polling disabled to prevent message duplication
             timeout: 10000, // 10 second timeout to avoid overly frequent reconnections
             forceNew: true, // Force new connection to avoid connection state pollution
+            reconnection: true, // Enable auto-reconnection (default, but explicit for clarity)
+            reconnectionAttempts: Number.POSITIVE_INFINITY, // Never give up
+            reconnectionDelay: 100, // Start with 100ms delay (fast initial reconnect)
+            reconnectionDelayMax: 2000, // Max 2 seconds between attempts
+            randomizationFactor: 0.1, // Low randomization for more consistent reconnect timing
         });
 
         // Bind enqueueSend to this instance for use in modules
@@ -176,6 +188,20 @@ export class AdvancedIMessageKit extends EventEmitter implements TypedEventEmitt
     }
 
     async connect() {
+        if (!this.listenersAttached) {
+            this.listenersAttached = true;
+            this.attachSocketListeners();
+        }
+
+        if (this.socket.connected) {
+            this.logger.info("Already connected to iMessage server");
+            return;
+        }
+
+        this.socket.connect();
+    }
+
+    private attachSocketListeners() {
         const serverEvents: (keyof PhotonEventMap)[] = [
             "new-message",
             "message-updated",
@@ -225,10 +251,31 @@ export class AdvancedIMessageKit extends EventEmitter implements TypedEventEmitt
             });
         }
 
-        this.socket.on("disconnect", () => {
-            this.logger.info("Disconnected from iMessage server");
+        this.socket.on("disconnect", (reason) => {
+            this.logger.info(`Disconnected from iMessage server (reason: ${reason})`);
             this.readyEmitted = false;
             this.emit("disconnect");
+
+            if (reason === "io server disconnect") {
+                this.logger.info("Server disconnected, manually triggering reconnect...");
+                this.socket.connect();
+            }
+        });
+
+        this.socket.io.on("reconnect_attempt", (attempt) => {
+            this.logger.info(`Reconnection attempt #${attempt}...`);
+        });
+
+        this.socket.io.on("reconnect", (attempt) => {
+            this.logger.info(`Reconnected successfully after ${attempt} attempt(s)`);
+        });
+
+        this.socket.io.on("reconnect_error", (error) => {
+            this.logger.warn(`Reconnection error: ${error.message}`);
+        });
+
+        this.socket.io.on("reconnect_failed", () => {
+            this.logger.error("All reconnection attempts failed");
         });
 
         // Listen for authentication success
@@ -246,12 +293,7 @@ export class AdvancedIMessageKit extends EventEmitter implements TypedEventEmitt
             this.emit("error", new Error(`Authentication failed: ${error.message}`));
         });
 
-        if (this.socket.connected) {
-            this.logger.info("Already connected to iMessage server");
-            return;
-        }
-
-        this.socket.once("connect", () => {
+        this.socket.on("connect", () => {
             this.logger.info("Connected to iMessage server, waiting for authentication...");
             // If no apiKey, assume legacy server that doesn't require auth - emit ready immediately
             if (!this.config.apiKey) {
@@ -263,9 +305,9 @@ export class AdvancedIMessageKit extends EventEmitter implements TypedEventEmitt
             }
         });
 
-        if (!this.socket.connected) {
-            this.socket.connect();
-        }
+        this.socket.on("connect_error", (error) => {
+            this.logger.warn(`Connection error: ${error.message}`);
+        });
     }
 
     async close() {
