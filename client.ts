@@ -107,6 +107,11 @@ export class AdvancedIMessageKit extends EventEmitter implements TypedEventEmitt
             transports: ["websocket"], // Only WebSocket - polling disabled to prevent message duplication
             timeout: 10000, // 10 second timeout to avoid overly frequent reconnections
             forceNew: true, // Force new connection to avoid connection state pollution
+            reconnection: true, // Enable auto-reconnection (default, but explicit for clarity)
+            reconnectionAttempts: Number.POSITIVE_INFINITY, // Never give up
+            reconnectionDelay: 100, // Start with 100ms delay (fast initial reconnect)
+            reconnectionDelayMax: 2000, // Max 2 seconds between attempts
+            randomizationFactor: 0.1, // Low randomization for more consistent reconnect timing
         });
 
         // Bind enqueueSend to this instance for use in modules
@@ -225,10 +230,31 @@ export class AdvancedIMessageKit extends EventEmitter implements TypedEventEmitt
             });
         }
 
-        this.socket.on("disconnect", () => {
-            this.logger.info("Disconnected from iMessage server");
+        this.socket.on("disconnect", (reason) => {
+            this.logger.info(`Disconnected from iMessage server (reason: ${reason})`);
             this.readyEmitted = false;
             this.emit("disconnect");
+
+            if (reason === "io server disconnect") {
+                this.logger.info("Server disconnected, manually triggering reconnect...");
+                this.socket.connect();
+            }
+        });
+
+        this.socket.io.on("reconnect_attempt", (attempt) => {
+            this.logger.info(`Reconnection attempt #${attempt}...`);
+        });
+
+        this.socket.io.on("reconnect", (attempt) => {
+            this.logger.info(`Reconnected successfully after ${attempt} attempt(s)`);
+        });
+
+        this.socket.io.on("reconnect_error", (error) => {
+            this.logger.warn(`Reconnection error: ${error.message}`);
+        });
+
+        this.socket.io.on("reconnect_failed", () => {
+            this.logger.error("All reconnection attempts failed");
         });
 
         // Listen for authentication success
@@ -251,7 +277,7 @@ export class AdvancedIMessageKit extends EventEmitter implements TypedEventEmitt
             return;
         }
 
-        this.socket.once("connect", () => {
+        this.socket.on("connect", () => {
             this.logger.info("Connected to iMessage server, waiting for authentication...");
             // If no apiKey, assume legacy server that doesn't require auth - emit ready immediately
             if (!this.config.apiKey) {
