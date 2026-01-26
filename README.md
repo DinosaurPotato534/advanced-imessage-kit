@@ -28,6 +28,7 @@ Advanced iMessage Kit is a full-featured iMessage SDK for **reading**, **sending
 | [Edit Messages](#edit-messages)                            | Edit a sent message                           | `messages.editMessage()`                     | [message-edit.ts](./examples/message-edit.ts)                     |
 | [Send Tapbacks](#send-tapbacks)                            | React with ❤️ 👍 👎 😂 ‼️ ❓                  | `messages.sendReaction()`                    | [message-reaction.ts](./examples/message-reaction.ts)             |
 | [Query Messages](#query-messages)                          | Search and filter message history             | `messages.getMessages()`                     | [message-search.ts](./examples/message-search.ts)                 |
+| [Destination Caller ID](#query-messages)                   | See which of your addresses sent/received     | `messages.getMessages()`                     | [message-destination-caller-id.ts](./examples/message-destination-caller-id.ts) |
 | [Message History](#get-chat-messages)                      | View messages, reactions, polls, stickers     | `chats.getChatMessages()`                    | [message-history.ts](./examples/message-history.ts)               |
 | [Send Attachments](#send-attachments)                      | Send images, files, documents                 | `attachments.sendAttachment()`               | [message-attachment.ts](./examples/message-attachment.ts)         |
 | [Send Audio Messages](#send-audio-messages)                | Send voice messages                           | `attachments.sendAttachment()`               | [message-audio.ts](./examples/message-audio.ts)                   |
@@ -208,11 +209,6 @@ const results = await sdk.messages.searchMessages({
 const total = await sdk.messages.getMessageCount();
 const sent = await sdk.messages.getSentMessageCount();
 const updated = await sdk.messages.getUpdatedMessageCount();
-
-const message = await sdk.messages.getMessage("message-guid");
-if (message.destinationCallerId) {
-  console.log(`Sent from: ${message.destinationCallerId}`);
-}
 ```
 
 ### Unsend Messages
@@ -333,7 +329,7 @@ const updated = await sdk.scheduledMessages.updateScheduledMessage(
     },
     scheduledFor: Date.now() + 10 * 60 * 1000,
     schedule: { type: "once" },
-  }
+  },
 );
 
 await sdk.scheduledMessages.deleteScheduledMessage("scheduled-id");
@@ -584,9 +580,8 @@ const buffer = await sdk.attachments.downloadAttachment("attachment-guid", {
 });
 
 // Download Live Photo video
-const liveBuffer = await sdk.attachments.downloadAttachmentLive(
-  "attachment-guid"
-);
+const liveBuffer =
+  await sdk.attachments.downloadAttachmentLive("attachment-guid");
 
 // Get blurhash (for placeholders)
 const blurhash = await sdk.attachments.getAttachmentBlurhash("attachment-guid");
@@ -675,11 +670,11 @@ Check if a phone/email supports iMessage or FaceTime:
 // First parameter is the address (phone or email), not handle guid
 const hasIMessage = await sdk.handles.getHandleAvailability(
   "+1234567890",
-  "imessage"
+  "imessage",
 );
 const hasFaceTime = await sdk.handles.getHandleAvailability(
   "+1234567890",
-  "facetime"
+  "facetime",
 );
 
 // Choose service based on availability
@@ -859,10 +854,10 @@ const locations = await sdk.icloud.refreshFindMyFriends();
 const friend = locations.find((loc) => loc.handle === "+1234567890");
 if (friend) {
   console.log(
-    `Coordinates: ${friend.coordinates[0]}, ${friend.coordinates[1]}`
+    `Coordinates: ${friend.coordinates[0]}, ${friend.coordinates[1]}`,
   );
   console.log(
-    `Maps: https://maps.google.com/?q=${friend.coordinates[0]},${friend.coordinates[1]}`
+    `Maps: https://maps.google.com/?q=${friend.coordinates[0]},${friend.coordinates[1]}`,
   );
   if (friend.long_address) console.log(`Address: ${friend.long_address}`);
 }
@@ -1075,6 +1070,7 @@ bun run examples/<filename>.ts
 | [message-effects.ts](./examples/message-effects.ts)   | Message effects   |
 | [message-search.ts](./examples/message-search.ts)     | Search messages   |
 | [message-history.ts](./examples/message-history.ts)   | Message history   |
+| [message-destination-caller-id.ts](./examples/message-destination-caller-id.ts) | Destination caller ID |
 
 ### Chats & Groups
 
