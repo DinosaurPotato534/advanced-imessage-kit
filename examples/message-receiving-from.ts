@@ -5,7 +5,7 @@ function formatMessage(msg: MessageResponse): string {
     const sender = msg.isFromMe ? "Me" : msg.handle?.address || "Unknown";
     const time = new Date(msg.dateCreated).toLocaleTimeString();
     const text = msg.text?.slice(0, 30) || "(no text)";
-    const via = msg.destinationCallerId || "?";
+    const via = msg.receivingFrom || "?";
     return `[${time}] ${sender}: "${text}" (via: ${via})`;
 }
 
