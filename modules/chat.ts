@@ -153,7 +153,21 @@ export class ChatModule {
         chatGuid: string,
         options: string | { imageUrl?: string; filePath?: string; fileData?: string },
     ): Promise<void> {
-        const body = typeof options === "string" ? { imageUrl: options } : options;
+        let body: { imageUrl?: string; fileData?: string };
+
+        if (typeof options === "string") {
+            body = { imageUrl: options };
+        } else if (options.filePath) {
+            const fileBuffer = await readFile(options.filePath);
+            body = { fileData: fileBuffer.toString("base64") };
+        } else if (options.fileData) {
+            body = { fileData: options.fileData };
+        } else if (options.imageUrl) {
+            body = { imageUrl: options.imageUrl };
+        } else {
+            throw new Error("Either filePath, fileData, or imageUrl must be provided");
+        }
+
         await this.http.post(`/api/v1/chat/${encodeURIComponent(chatGuid)}/background`, body);
     }
 
