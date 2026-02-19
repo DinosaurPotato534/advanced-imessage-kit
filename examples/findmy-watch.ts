@@ -1,8 +1,6 @@
 import type { FindMyLocationItem } from "../types/findmy";
 import { createSDK, handleExit } from "./utils";
 
-const REFRESH_INTERVAL_MS = 30_000;
-
 function formatTime(timestamp: number): string {
     return new Date(timestamp).toLocaleTimeString();
 }
@@ -27,7 +25,7 @@ async function main() {
     const sdk = createSDK();
 
     sdk.on("ready", async () => {
-        console.log("\n--- Initial ---");
+        console.log("\n--- Initial locations ---");
         try {
             const locations = await sdk.icloud.refreshFindMyFriends();
             if (locations.length === 0) {
@@ -41,11 +39,8 @@ async function main() {
             console.error("Failed to fetch initial locations:", err);
         }
 
-        console.log(`\n--- Watching ---\n`);
-
-        setInterval(() => {
-            sdk.icloud.refreshFindMyFriends().catch(() => {});
-        }, REFRESH_INTERVAL_MS);
+        console.log("\n--- Watching for updates (Ctrl+C to stop) ---");
+        console.log("  Server auto-refreshes every 30s.\n");
     });
 
     sdk.on("new-findmy-location", (location: FindMyLocationItem) => {
